@@ -1,0 +1,81 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "Map.tmx",
+    "expandedProjectPaths": [
+        ".",
+        "tilesets"
+    ],
+    "file.lastUsedOpenFilter": "All Files (*)",
+    "fileStates": {
+        "FRLG Outside A1B.tsx": {
+            "scaleInDock": 0.5,
+            "scaleInEditor": 1
+        },
+        "FRLG Outside A2A.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 0.5,
+            "scaleInEditor": 1
+        },
+        "FRLG Outside A2B.tsx": {
+            "scaleInDock": 0.33,
+            "scaleInEditor": 1
+        },
+        "FRLG Outside B.tsx": {
+            "scaleInDock": 0.5,
+            "scaleInEditor": 1
+        },
+        "Map.tmx": {
+            "scale": 1,
+            "selectedLayer": 3,
+            "viewCenter": {
+                "x": 436.5,
+                "y": 327
+            }
+        },
+        "map_tileset.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1
+        },
+        "pokemon_tileset_from_public_tiles_by_chaoticcherrycake_d5xdb0y.tsx": {
+            "scaleInDock": 0.75,
+            "scaleInEditor": 1.5
+        },
+        "tilesets/FRLG Outside A2A.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "tilesets/map_tileset.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        }
+    },
+    "last.externalTilesetPath": "C:/Users/ricka/OneDrive - Concordia University - Canada/Desktop/Coding/Web/Personal_Website/assets",
+    "last.imagePath": "C:/Users/ricka/OneDrive - Concordia University - Canada/Desktop/Coding/Web/Personal_Website/assets/texture/Pokemon RPGM MV Ultimate Resource Pack V1.0/img/tilesets/FRLG/FRLG Outside",
+    "map.height": 40,
+    "map.lastUsedFormat": "tmx",
+    "map.tileHeight": 16,
+    "map.tileWidth": 16,
+    "map.width": 60,
+    "openFiles": [
+        "Map.tmx"
+    ],
+    "project": "untitled.tiled-project",
+    "recentFiles": [
+        "Map.tmx",
+        "tilesets/FRLG Outside A2A.tsx",
+        "tilesets/map_tileset.tsx",
+        "FRLG Outside A2A.tsx",
+        "FRLG Outside B.tsx",
+        "pokemon_tileset_from_public_tiles_by_chaoticcherrycake_d5xdb0y.tsx",
+        "FRLG Outside A1B.tsx",
+        "FRLG Outside A2B.tsx"
+    ],
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.tileSize": {
+        "height": 16,
+        "width": 16
+    }
+}
