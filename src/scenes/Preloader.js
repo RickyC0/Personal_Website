@@ -12,9 +12,10 @@ export class Preloader extends Phaser.Scene {
     this.load.setPath('./assets/');
 
     // Actual Map
-    this.load.tilemapTiledJSON('map', 'MapJson.json');
+    this.load.tilemapTiledJSON('map', 'MapJSON.json');
 
-    this.load.image('MainTileset', '/tilesets/MainTilesetPng.png');
+    //Tileset used in the map
+    this.load.image('MainTileset', '/tilesets/MainTilesetPNG.png');
     
 
     this.load.spritesheet('Snorlax-player',

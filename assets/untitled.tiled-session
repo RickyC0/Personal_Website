@@ -5,9 +5,9 @@
     },
     "activeFile": "Map.tmx",
     "expandedProjectPaths": [
-        ".",
         "custom-sprites",
-        "tilesets"
+        "tilesets",
+        "."
     ],
     "file.lastUsedOpenFilter": "All Files (*)",
     "fileStates": {
@@ -55,10 +55,10 @@
         },
         "Map.tmx": {
             "scale": 1,
-            "selectedLayer": 24,
+            "selectedLayer": 3,
             "viewCenter": {
-                "x": 447.5,
-                "y": 313.5
+                "x": 340.5,
+                "y": 285.5
             }
         },
         "Map.tmx#Main Tileset": {
@@ -67,6 +67,9 @@
         "Map.tmx#MainTileset": {
             "scaleInDock": 1,
             "scaleInEditor": 1
+        },
+        "Map.tmx#MainTilesetPNG": {
+            "scaleInDock": 1
         },
         "Map.tmx#map_tileset": {
             "dynamicWrapping": false,
@@ -116,6 +119,15 @@
         "tilesets/MainTileset.json": {
             "scaleInDock": 1
         },
+        "tilesets/MainTileset.tsx": {
+            "scaleInDock": 1
+        },
+        "tilesets/MainTilesetJSON.json": {
+            "scaleInDock": 1
+        },
+        "tilesets/MainTilesetTSX.tsx": {
+            "scaleInDock": 1
+        },
         "tilesets/MainTilesetTsx.tsx": {
             "scaleInDock": 1
         },
@@ -135,9 +147,9 @@
             "scaleInEditor": 1
         }
     },
-    "last.exportedFilePath": "C:/Users/ricka/OneDrive - Concordia University - Canada/Desktop/Coding/Web/Personal_Website/assets/tilesets",
+    "last.exportedFilePath": "C:/Users/ricka/OneDrive - Concordia University - Canada/Desktop/Coding/Web/Personal_Website/assets",
     "last.externalTilesetPath": "C:/Users/ricka/OneDrive - Concordia University - Canada/Desktop/Coding/Web/Personal_Website/assets/tilesets",
-    "last.imagePath": "C:/Users/ricka/OneDrive - Concordia University - Canada/Desktop/Coding/Web/Personal_Website/assets/texture",
+    "last.imagePath": "C:/Users/ricka/OneDrive - Concordia University - Canada/Desktop/Coding/Web/Personal_Website/assets/tilesets",
     "lastUsedTilesetExportFilter": "JSON tileset files (*.tsj *.json)",
     "map.height": 40,
     "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
@@ -151,8 +163,8 @@
     "project": "untitled.tiled-project",
     "recentFiles": [
         "Map.tmx",
-        "tilesets/MapJson.json",
         "tilesets/map_tileset.tsx",
+        "tilesets/MapJson.json",
         "tilesets/FRLG Outside B.tsx",
         "Map2.tmx",
         "tilesets/Characters 12.tsx",
