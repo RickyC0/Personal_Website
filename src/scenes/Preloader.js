@@ -3,22 +3,34 @@ export class Preloader extends Phaser.Scene {
     super({ key: 'Preloader' });
   }
 
-  
+
   init(){
 
   }
 
   preload() {
-    this.load.setPath('assets/');
-    this.load.tilemapTiledJSON('map', 'assets/Map.tmx');
+    this.load.setPath('./assets/');
+
+    // Actual Map
+    this.load.tilemapTiledJSON('map', 'MapJson.json');
+
+    this.load.image('MainTileset', '/tilesets/MainTilesetPng.png');
+    
+
+    this.load.spritesheet('Snorlax-player',
+        'Snorlax.png',
+        { frameWidth: 84, frameHeight: 102 }
+    )
+
+    
   }
 
   create() {
-
-    this.map = this.make.tilemap({ key: 'map' });
-
-
-    this.scene.start('Main');
     
+
+
+    this.scene.start('Game');
+    
+
   }
 }

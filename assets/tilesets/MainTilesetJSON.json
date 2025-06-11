@@ -1,0 +1,14 @@
+{ "columns":140,
+ "image":"..\/texture\/pokemon_tileset_from_public_tiles_by_chaoticcherrycake_d5xdb0y.png",
+ "imageheight":2400,
+ "imagewidth":2240,
+ "margin":0,
+ "name":"MainTileset",
+ "spacing":0,
+ "tilecount":21000,
+ "tiledversion":"1.11.2",
+ "tileheight":16,
+ "tilewidth":16,
+ "type":"tileset",
+ "version":"1.10"
+}
