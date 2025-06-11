@@ -9,7 +9,16 @@ export class Game extends Phaser.Scene {
   }
 
     create(){
-      
+      //Used to resize the map according to the window size, onload and dynamically
+      const applyResponsiveZoom = (scene, map) => {
+        const gameSize = scene.scale.gameSize;
+        const zoomX = gameSize.width / map.widthInPixels;
+        const zoomY = gameSize.height / map.heightInPixels;
+        const zoom = Math.min(zoomX, zoomY);
+        scene.cameras.main.setZoom(zoom);
+        scene.cameras.main.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
+      };
+
       this.cursors = this.input.keyboard.createCursorKeys();
       const map = this.make.tilemap({ key: 'map' });
 
@@ -23,7 +32,16 @@ export class Game extends Phaser.Scene {
 
       this.player = new Player(this, 100, 300);
 
+      
 
+      // Apply on load
+      applyResponsiveZoom(this, map);
+
+      // Re-apply on resize
+      this.scale.on('resize', () => {
+        applyResponsiveZoom(this, map);
+      });
+      
       
      
     }
