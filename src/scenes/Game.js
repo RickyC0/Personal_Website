@@ -120,7 +120,17 @@ export class Game extends Phaser.Scene {
       
 
       this.physics.add.collider(this.player, this.collision);
+
+      //This creates a cursor object to manipulate the player's movements
       //------------------------------------------------------
+      this.cursors = this.input.keyboard.createCursorKeys();
+
+      this.keys = this.input.keyboard.addKeys({
+        up: Phaser.Input.Keyboard.KeyCodes.W,
+        down: Phaser.Input.Keyboard.KeyCodes.S,
+        left: Phaser.Input.Keyboard.KeyCodes.A,
+        right: Phaser.Input.Keyboard.KeyCodes.D
+      });
 
 
       // Resize map on load
@@ -136,7 +146,21 @@ export class Game extends Phaser.Scene {
     
 
   update(){
-      
-  }
+      const cursors = this.cursors;
+      const keys = this.keys;
+
+      if (cursors.left.isDown || keys.left.isDown) {
+        this.player.moveLeft();
+      } else if (cursors.right.isDown || keys.right.isDown) {
+        this.player.moveRight();
+      } else if (cursors.up.isDown || keys.up.isDown) {
+        this.player.moveUp();
+      } else if (cursors.down.isDown || keys.down.isDown) {
+        this.player.moveDown();
+      } else {
+        this.player.idle();
+      }
+    }
+  
 }
 
