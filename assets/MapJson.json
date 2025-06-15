@@ -8,7 +8,7 @@
          "name":"Collision",
          "objects":[
                 {
-                 "height":45,
+                 "height":37,
                  "id":19,
                  "name":"Red house",
                  "rotation":0,
@@ -19,7 +19,7 @@
                  "y":215
                 }, 
                 {
-                 "height":50.25,
+                 "height":43.25,
                  "id":20,
                  "name":"Blue tower",
                  "rotation":0,
@@ -30,30 +30,18 @@
                  "y":211
                 }, 
                 {
-                 "ellipse":true,
-                 "height":43,
-                 "id":22,
-                 "name":"Fighting tower",
-                 "rotation":0,
-                 "type":"building",
-                 "visible":true,
-                 "width":71,
-                 "x":836,
-                 "y":282
-                }, 
-                {
-                 "height":2.45454545454547,
+                 "height":6.45454545454547,
                  "id":31,
                  "name":"cliff",
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":248.5,
-                 "x":461.75,
-                 "y":222
+                 "width":232.5,
+                 "x":462.295454545455,
+                 "y":212.022727272727
                 }, 
                 {
-                 "height":16.1363636363636,
+                 "height":13.6363636363636,
                  "id":32,
                  "name":"spawn",
                  "rotation":0,
@@ -64,7 +52,7 @@
                  "y":503.454545454545
                 }, 
                 {
-                 "height":10.3636363636363,
+                 "height":3.36363636363626,
                  "id":33,
                  "name":"hill bottom",
                  "rotation":0,
@@ -126,8 +114,19 @@
                  "type":"Cliff Tree",
                  "visible":true,
                  "width":279.666666666667,
-                 "x":0.0909090909090935,
-                 "y":171.424242424242
+                 "x":0.424242424242436,
+                 "y":166.757575757576
+                }, 
+                {
+                 "height":13.0151515151515,
+                 "id":68,
+                 "name":"",
+                 "rotation":0,
+                 "type":"Cliff Tree",
+                 "visible":true,
+                 "width":279.666666666667,
+                 "x":0.424242424242436,
+                 "y":166.757575757576
                 }, 
                 {
                  "height":20.4242424242424,
@@ -160,7 +159,7 @@
                  "visible":true,
                  "width":42.6666666666667,
                  "x":325.424242424242,
-                 "y":223.757575757576
+                 "y":219.090909090909
                 }, 
                 {
                  "height":9.28787878787878,
@@ -170,8 +169,8 @@
                  "type":"Cliff Tree",
                  "visible":true,
                  "width":85.6060606060606,
-                 "x":365.575757575758,
-                 "y":239
+                 "x":366.909090909091,
+                 "y":232.833333333333
                 }, 
                 {
                  "height":14.6363636363636,
@@ -185,17 +184,6 @@
                  "y":224.363636363636
                 }, 
                 {
-                 "height":16.3333333333333,
-                 "id":47,
-                 "name":"",
-                 "rotation":0,
-                 "type":"Cliff Tree",
-                 "visible":true,
-                 "width":15.3333333333334,
-                 "x":688.666666666667,
-                 "y":207.666666666667
-                }, 
-                {
                  "height":15.3333333333333,
                  "id":48,
                  "name":"",
@@ -207,14 +195,14 @@
                  "y":192
                 }, 
                 {
-                 "height":45.6969696969697,
+                 "height":30.7424242424242,
                  "id":50,
                  "name":"",
                  "rotation":0,
                  "type":"Cliff Tree",
                  "visible":true,
-                 "width":15,
-                 "x":721,
+                 "width":8.12121212121224,
+                 "x":727.878787878788,
                  "y":208
                 }, 
                 {
@@ -224,31 +212,31 @@
                  "rotation":0,
                  "type":"Cliff Tree",
                  "visible":true,
-                 "width":74.3333333333334,
-                 "x":720.666666666667,
-                 "y":239.333333333333
+                 "width":54.878787878788,
+                 "x":736.090909090909,
+                 "y":227.787878787879
                 }, 
                 {
-                 "height":11.1666666666667,
+                 "height":9.53030303030306,
                  "id":52,
                  "name":"",
                  "rotation":0,
                  "type":"Cliff Tree",
                  "visible":true,
-                 "width":48,
-                 "x":795,
-                 "y":224.333333333333
+                 "width":58.1818181818182,
+                 "x":783.484848484848,
+                 "y":219.666666666667
                 }, 
                 {
-                 "height":9.50757575757575,
+                 "height":14.4166666666667,
                  "id":53,
                  "name":"",
                  "rotation":0,
                  "type":"Cliff Tree",
                  "visible":true,
-                 "width":81.3333333333333,
-                 "x":843,
-                 "y":208.333333333333
+                 "width":78.2424242424242,
+                 "x":842.333333333333,
+                 "y":197.242424242424
                 }, 
                 {
                  "height":8.48484848484847,
@@ -257,9 +245,9 @@
                  "rotation":0,
                  "type":"Cliff Tree",
                  "visible":true,
-                 "width":35,
-                 "x":924.333333333333,
-                 "y":192.666666666667
+                 "width":41.5454545454545,
+                 "x":918.454545454545,
+                 "y":189
                 }, 
                 {
                  "height":639,
@@ -306,29 +294,29 @@
                  "y":-25
                 }, 
                 {
-                 "height":43.75,
+                 "height":34.75,
                  "id":59,
                  "name":"arena sign",
                  "rotation":0,
                  "type":"Sign",
                  "visible":true,
-                 "width":21,
-                 "x":932.375,
+                 "width":20.6666666666667,
+                 "x":932.708333333333,
                  "y":338.25
                 }, 
                 {
-                 "height":14,
+                 "height":0.75,
                  "id":60,
                  "name":"red house sign",
                  "rotation":0,
                  "type":"Sign",
                  "visible":true,
-                 "width":43.125,
-                 "x":18.375,
-                 "y":278.5
+                 "width":32.7727272727273,
+                 "x":22.375,
+                 "y":277.375
                 }, 
                 {
-                 "height":26.9090909090909,
+                 "height":21.9090909090909,
                  "id":61,
                  "name":"grave sign",
                  "rotation":0,
@@ -339,7 +327,7 @@
                  "y":450.181818181818
                 }, 
                 {
-                 "height":8.77272727272725,
+                 "height":7.13636363636357,
                  "id":62,
                  "name":"top left pot",
                  "rotation":0,
@@ -350,7 +338,7 @@
                  "y":387.090909090909
                 }, 
                 {
-                 "height":8.97727272727275,
+                 "height":7.06818181818187,
                  "id":63,
                  "name":"top right pot",
                  "rotation":0,
@@ -383,15 +371,26 @@
                  "y":521.375
                 }, 
                 {
-                 "height":12.5,
+                 "height":1.12500000000006,
                  "id":66,
                  "name":"blue house sign",
                  "rotation":0,
                  "type":"Sign",
                  "visible":true,
-                 "width":43.25,
-                 "x":210.5,
-                 "y":279
+                 "width":33.7954545454545,
+                 "x":216.136363636364,
+                 "y":277.166666666667
+                }, 
+                {
+                 "height":29.5,
+                 "id":67,
+                 "name":"fighting arena",
+                 "rotation":0,
+                 "type":"building",
+                 "visible":true,
+                 "width":50.5,
+                 "x":846.5,
+                 "y":283
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -1657,7 +1656,7 @@
          "y":0
         }],
  "nextlayerid":29,
- "nextobjectid":67,
+ "nextobjectid":69,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",
