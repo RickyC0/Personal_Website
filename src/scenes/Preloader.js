@@ -15,7 +15,7 @@ export class Preloader extends Phaser.Scene {
     this.load.tilemapTiledJSON('map', 'MapJSON.json');
 
     //Tileset used in the map
-    this.load.image('MainTileset', '/tilesets/MainTilesetPNG.png');
+    this.load.image('tileset', '/tilesets/MainTilesetPNG.png');
     
 
     this.load.spritesheet('Snorlax-player',

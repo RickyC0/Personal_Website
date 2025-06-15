@@ -23,13 +23,13 @@ export class Game extends Phaser.Scene {
       const map = this.make.tilemap({ key: 'map' });
 
       //Here the tileset name should be the name of the tileset in TILED and not the PNG
-      const mainTileset = map.addTilesetImage('MainTileset', 'MainTileset');
+      const tileset = map.addTilesetImage('MainTileset', 'tileset');
       
       //All the layers of the map
       const layerMap = {};
 
       map.layers.forEach(layerData => {
-        layerMap[layerData.name] = map.createLayer(layerData.name, mainTileset, 0, 0);
+        layerMap[layerData.name] = map.createLayer(layerData.name, tileset, 0, 0);
       });
 
       //Layers to turn on and off
@@ -75,7 +75,53 @@ export class Game extends Phaser.Scene {
         }
       });
 
+      //Player
+      //----------------------------------------------------      
       this.player = new Player(this, 100, 300);
+      //----------------------------------------------------
+
+      //Collision with object and limit to the map
+      //----------------------------------------------------
+      
+      //Read the objects from Tiled
+      const collisionLayer = map.getObjectLayer('Collision');
+
+      this.collision = this.physics.add.staticGroup(); // Create group for collision
+
+      if (collisionLayer) {
+        collisionLayer.objects.forEach(obj => {
+          let shape;
+
+          // Handle rectangles
+          if (!obj.ellipse) {
+            shape = this.add.rectangle(
+              obj.x + obj.width / 2,
+              obj.y + obj.height / 2,
+              obj.width,
+              obj.height
+            );
+          }
+
+          // Handle ellipses (as circles)
+          else {
+            const radius = Math.max(obj.width, obj.height) / 2;
+            shape = this.add.ellipse(
+              obj.x + radius,
+              obj.y + radius,
+              radius * 2,
+              radius * 2
+            );
+          }
+
+          this.physics.add.existing(shape, true); // Make it static
+          this.collision.add(shape);              // Add to group
+        });
+      }
+      
+
+      this.physics.add.collider(this.player, this.collision);
+      //------------------------------------------------------
+
 
       // Resize map on load
       applyResponsiveZoom(this, map);
