@@ -91,28 +91,14 @@ export class Game extends Phaser.Scene {
       if (collisionLayer) {
         collisionLayer.objects.forEach(obj => {
           let shape;
-
-          // Handle rectangles
-          if (!obj.ellipse) {
-            shape = this.add.rectangle(
-              obj.x + obj.width / 2,
-              obj.y + obj.height / 2,
-              obj.width,
-              obj.height
-            );
-          }
-
-          // Handle ellipses (as circles)
-          else {
-            const radius = Math.max(obj.width, obj.height) / 2;
-            shape = this.add.ellipse(
-              obj.x + radius,
-              obj.y + radius,
-              radius * 2,
-              radius * 2
-            );
-          }
-
+      
+          shape = this.add.rectangle(
+            obj.x + obj.width / 2,
+            obj.y + obj.height / 2,
+            obj.width,
+            obj.height
+          );
+ 
           this.physics.add.existing(shape, true); // Make it static
           this.collision.add(shape);              // Add to group
         });
