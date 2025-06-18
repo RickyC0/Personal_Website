@@ -30,6 +30,7 @@ export class Game extends Phaser.Scene {
 
       map.layers.forEach(layerData => {
         layerMap[layerData.name] = map.createLayer(layerData.name, tileset, 0, 0);
+
       });
 
       //Layers to turn on and off
@@ -52,6 +53,9 @@ export class Game extends Phaser.Scene {
           waveLayers.push(layer);
         }
       }
+
+      //Harcoded to make the player pass behind the tower
+      layerMap["Map Landmarks/Fighting Arena"].setDepth(500);
 
       //This creates an event every 1 second to simulate the wind by turning visible on and off the wind layers
       this.time.addEvent({

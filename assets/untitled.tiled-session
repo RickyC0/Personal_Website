@@ -12,7 +12,7 @@
     "file.lastUsedOpenFilter": "All Files (*)",
     "fileStates": {
         "": {
-            "scaleInDock": 1,
+            "scaleInDock": 0.75,
             "scaleInEditor": 1
         },
         ":/automap-tiles.tsx": {
@@ -55,17 +55,20 @@
         },
         "Map.tmx": {
             "scale": 1,
-            "selectedLayer": 3,
+            "selectedLayer": 23,
             "viewCenter": {
-                "x": 340.5,
-                "y": 285.5
+                "x": 502,
+                "y": 430.5
             }
+        },
+        "Map.tmx#ForBuildings": {
+            "scaleInEditor": 1
         },
         "Map.tmx#Main Tileset": {
             "scaleInEditor": 1
         },
         "Map.tmx#MainTileset": {
-            "scaleInDock": 1,
+            "scaleInDock": 2,
             "scaleInEditor": 1
         },
         "Map.tmx#MainTilesetPNG": {
