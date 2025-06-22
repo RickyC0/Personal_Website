@@ -1,6 +1,7 @@
 //main.js
 //  This file is part of a Phaser 3 game that uses a tilemap created in Tiled.
 import { Player } from '../GameObjects/Player.js';
+import { InteractableRect } from '../GameObjects/InteractableRect.js';
 
 export class Game extends Phaser.Scene {
 
@@ -9,7 +10,7 @@ export class Game extends Phaser.Scene {
   }
 
     create(){
-      //Used to resize the map according to the window size, onload and dynamically
+      //Used to resize the this.map according to the window size, onload and dynamically
       const applyResponsiveZoom = (scene, map) => {
         const gameSize = scene.scale.gameSize;
         const zoomX = gameSize.width / map.widthInPixels;
@@ -20,16 +21,16 @@ export class Game extends Phaser.Scene {
       };
 
       this.cursors = this.input.keyboard.createCursorKeys();
-      const map = this.make.tilemap({ key: 'map' });
+      this.map = this.make.tilemap({ key: 'map' });
 
       //Here the tileset name should be the name of the tileset in TILED and not the PNG
-      const tileset = map.addTilesetImage('MainTileset', 'tileset');
+      const tileset = this.map.addTilesetImage('MainTileset', 'tileset');
       
       //All the layers of the map
       const layerMap = {};
 
-      map.layers.forEach(layerData => {
-        layerMap[layerData.name] = map.createLayer(layerData.name, tileset, 0, 0);
+      this.map.layers.forEach(layerData => {
+        layerMap[layerData.name] = this.map.createLayer(layerData.name, tileset, 0, 0);
 
       });
 
@@ -89,13 +90,20 @@ export class Game extends Phaser.Scene {
       //Player
       //----------------------------------------------------      
       this.player = new Player(this, 100, 300);
+
+      this.keys = this.input.keyboard.addKeys({
+            up: Phaser.Input.Keyboard.KeyCodes.W,
+            down: Phaser.Input.Keyboard.KeyCodes.S,
+            left: Phaser.Input.Keyboard.KeyCodes.A,
+            right: Phaser.Input.Keyboard.KeyCodes.D
+        });
       //----------------------------------------------------
 
       //Collision with object and limit to the map
       //----------------------------------------------------
       
       //Read the objects from Tiled
-      const collisionLayer = map.getObjectLayer('Collision');
+      const collisionLayer = this.map.getObjectLayer('Collision');
 
       this.collision = this.physics.add.staticGroup(); // Create group for collision
 
@@ -118,24 +126,30 @@ export class Game extends Phaser.Scene {
 
       this.physics.add.collider(this.player, this.collision);
 
-      //This creates a cursor object to manipulate the player's movements
-      //------------------------------------------------------
-      this.cursors = this.input.keyboard.createCursorKeys();
+      //Interactables settings
+      // 1) set up “press Enter” key once
+      this.interactKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
 
-      this.keys = this.input.keyboard.addKeys({
-        up: Phaser.Input.Keyboard.KeyCodes.W,
-        down: Phaser.Input.Keyboard.KeyCodes.S,
-        left: Phaser.Input.Keyboard.KeyCodes.A,
-        right: Phaser.Input.Keyboard.KeyCodes.D
+      // 2) group to keep references
+      this.interactables = this.add.group();
+
+      // 3) pull the ractangles to interact with from the Interactables object layer
+      const interactableObjects = this.map.getObjectLayer('Interactables')?.objects || [];
+
+      interactableObjects.forEach(obj => {
+        const message = obj.properties?.find(p => p.name === 'message')?.value;
+        const zone = new InteractableRect(this, obj, { message });
+        this.interactables.add(zone);
       });
 
+      console.log(interactableObjects);
 
       // Resize map on load
-      applyResponsiveZoom(this, map);
+      applyResponsiveZoom(this, this.map);
 
-      // Resize map dynamically
+      // Resize this.map dynamically
       this.scale.on('resize', () => {
-        applyResponsiveZoom(this, map);
+        applyResponsiveZoom(this, this.map);
       });
      
     }
