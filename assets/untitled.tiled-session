@@ -13,7 +13,7 @@
     "fileStates": {
         "": {
             "scaleInDock": 0.75,
-            "scaleInEditor": 1
+            "scaleInEditor": 4
         },
         ":/automap-tiles.tsx": {
             "scaleInDock": 1
@@ -54,11 +54,14 @@
             "scaleInEditor": 0.5
         },
         "Map.tmx": {
+            "expandedGroupLayers": [
+                30
+            ],
             "scale": 1,
-            "selectedLayer": 23,
+            "selectedLayer": 1,
             "viewCenter": {
-                "x": 502,
-                "y": 430.5
+                "x": 485,
+                "y": 283.5
             }
         },
         "Map.tmx#ForBuildings": {
@@ -68,7 +71,7 @@
             "scaleInEditor": 1
         },
         "Map.tmx#MainTileset": {
-            "scaleInDock": 2,
+            "scaleInDock": 1,
             "scaleInEditor": 1
         },
         "Map.tmx#MainTilesetPNG": {

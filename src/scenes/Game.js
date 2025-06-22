@@ -38,9 +38,10 @@ export class Game extends Phaser.Scene {
       //WIND for wind layers ex: trees
       //WAVES self explanatory
       //Made them class objects to access them in update()
-      const moveLayers=[]
-      const waveLayers=[]
-      const windLayers=[]
+      const moveLayers=[];
+      const waveLayers=[];
+      const windLayers=[];
+      const staticLayers=[];
 
       for (const key in layerMap) {
         const layer = layerMap[key]; // Get the actual layer object
@@ -51,11 +52,17 @@ export class Game extends Phaser.Scene {
           windLayers.push(layer);
         } if(key.includes('WAVE')){
           waveLayers.push(layer);
+        } if(key.includes ('STATIC')){
+          staticLayers.push(layer);
         }
+
       }
 
-      //Harcoded to make the player pass behind the tower
-      layerMap["Map Landmarks/Fighting Arena"].setDepth(500);
+      //Layers which should be displayed above the player sprite, i.e. player should pass behind these layers
+      staticLayers.forEach(layer =>{
+          layer.setDepth(100);
+        }
+      );
 
       //This creates an event every 1 second to simulate the wind by turning visible on and off the wind layers
       this.time.addEvent({
