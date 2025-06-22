@@ -1,0 +1,16 @@
+{
+  "name": "ricardos-pokemon-website",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/Main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "http-server . -p 3000 --cors"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "keywords": ["personal", "website", "static", "server", "Ricardo", "Chahine"],
+  "author": "",
+  "license": "ISC"
+}
