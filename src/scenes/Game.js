@@ -137,12 +137,11 @@ export class Game extends Phaser.Scene {
       const interactableObjects = this.map.getObjectLayer('Interactables')?.objects || [];
 
       interactableObjects.forEach(obj => {
-        const message = obj.properties?.find(p => p.name === 'message')?.value;
-        const zone = new InteractableRect(this, obj, { message });
+        const zone = new InteractableRect(this, obj);
         this.interactables.add(zone);
       });
 
-      console.log(interactableObjects);
+
 
       // Resize map on load
       applyResponsiveZoom(this, this.map);

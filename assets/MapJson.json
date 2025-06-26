@@ -399,8 +399,8 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":11.3636363636363,
-                 "x":579.022727272727,
+                 "width":11.3636,
+                 "x":579.023,
                  "y":263.5
                 }, 
                 {
@@ -410,9 +410,9 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":2.07608695652175,
-                 "x":550.989130434783,
-                 "y":281.945652173913
+                 "width":2.07609,
+                 "x":550.989,
+                 "y":281.946
                 }, 
                 {
                  "height":4.125,
@@ -422,8 +422,8 @@
                  "type":"",
                  "visible":true,
                  "width":1.75,
-                 "x":614.810276679842,
-                 "y":281.635375494071
+                 "x":614.81,
+                 "y":281.635
                 }, 
                 {
                  "height":6.125,
@@ -2089,7 +2089,27 @@
                  "name":"Statue",
                  "properties":[
                         {
-                         "name":"message",
+                         "name":"IMAGE-cv",
+                         "type":"file",
+                         "value":"custom-sprites\/CV_Sprite.png"
+                        }, 
+                        {
+                         "name":"IMAGE-education",
+                         "type":"file",
+                         "value":"custom-sprites\/graduation_hat.png"
+                        }, 
+                        {
+                         "name":"IMAGE-projects",
+                         "type":"file",
+                         "value":"custom-sprites\/lightbulb.png"
+                        }, 
+                        {
+                         "name":"background",
+                         "type":"color",
+                         "value":"#ffc8b889"
+                        }, 
+                        {
+                         "name":"title",
                          "type":"string",
                          "value":"Here is Ricardo's Lore"
                         }],
@@ -2098,7 +2118,7 @@
                  "visible":true,
                  "width":21.75,
                  "x":573.25,
-                 "y":263.4375
+                 "y":263.438
                 }],
          "opacity":1,
          "type":"objectgroup",

@@ -8,7 +8,7 @@ export class Preloader extends Phaser.Scene {
     this.load.setPath('./assets/');
 
     // 1) Tilemap JSON
-    this.load.tilemapTiledJSON('map', 'MapJSON.json');
+    this.load.tilemapTiledJSON('map', 'MapJson.json');
 
     // 2) Tileset as a spritesheet 
     this.load.spritesheet(
@@ -25,6 +25,12 @@ export class Preloader extends Phaser.Scene {
       'Snorlax.png',
       { frameWidth: 84, frameHeight: 102 }
     );
+
+    // 4) Assets to load later
+    this.load.image('cv-sprite', 'custom-sprites/cv-sprite.png');
+    this.load.image('projects-sprite', 'custom-sprites/light-bulb.png');
+    this.load.image('education-sprite', 'custom-sprites/graduation-hat.png');
+
   }
 
   create() {

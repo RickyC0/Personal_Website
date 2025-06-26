@@ -1,14 +1,21 @@
 import { Boot } from './scenes/Boot.js';
 import { Game } from './scenes/Game.js';
 import { Preloader } from './scenes/Preloader.js';
+import { ricardosLore } from './scenes/ricardosLore.js';
 
 const config = {
   type: Phaser.AUTO,
   parent: 'game-container',
 
+  // Explicit initial size
+  width: window.innerWidth,
+  height: window.innerHeight,
+
+  backgroundColor: 0x000000,
+
   scale: {
-    mode: Phaser.Scale.RESIZE,            // Make canvas fit full window
-    autoCenter: Phaser.Scale.CENTER_BOTH, // Center if there's any extra space
+    mode: Phaser.Scale.RESIZE,            // canvas resizes with window
+    autoCenter: Phaser.Scale.CENTER_BOTH, // stays centered
   },
 
   physics: {
@@ -19,7 +26,9 @@ const config = {
     }
   },
 
-  scene: [Boot, Preloader, Game]
+  scene: [Boot, Preloader, Game, ricardosLore]
 };
 
-const game = new Phaser.Game(config);
+window.addEventListener('load', () => {
+  new Phaser.Game(config);
+});

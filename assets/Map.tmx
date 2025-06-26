@@ -1379,9 +1379,13 @@
   </layer>
  </group>
  <objectgroup id="40" name="Interactables">
-  <object id="90" name="Statue" x="573.25" y="263.438" width="21.75" height="22.6875">
+  <object id="90" name="Lore" x="573.25" y="263.438" width="21.75" height="22.6875">
    <properties>
-    <property name="message" value="Here is Ricardo's Lore"/>
+    <property name="IMAGE-cv" type="file" value="custom-sprites/CV_Sprite.png"/>
+    <property name="IMAGE-education" type="file" value="custom-sprites/graduation_hat.png"/>
+    <property name="IMAGE-projects" type="file" value="custom-sprites/lightbulb.png"/>
+    <property name="background" type="color" value="#ffc8b889"/>
+    <property name="title" value="Here is Ricardo's Lore"/>
    </properties>
   </object>
  </objectgroup>
