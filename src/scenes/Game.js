@@ -38,7 +38,7 @@ export class Game extends Phaser.Scene {
       //MOVE is for all layers that move
       //WIND for wind layers ex: trees
       //WAVES self explanatory
-      //Made them class objects to access them in update()
+      
       const moveLayers=[];
       const waveLayers=[];
       const windLayers=[];
@@ -47,6 +47,7 @@ export class Game extends Phaser.Scene {
       for (const key in layerMap) {
         const layer = layerMap[key]; // Get the actual layer object
 
+        //NB: CAN OPTIONALLY USE CUSTOM PROPERTIES INSTEAD OF SEARCHING THE NAME FOR A KEYWORD
         if (key.includes('MOVE')) {
           moveLayers.push(layer);
         } if (key.includes('WIND')) {
@@ -78,7 +79,7 @@ export class Game extends Phaser.Scene {
 
       //This creates an event every 1.5 seconds to simulate the waves by turning visible on and off the wave layers
       this.time.addEvent({
-        delay: 1500, // 1 second
+        delay: 1500, // 1.5 seconds
         loop: true,
         callback: () => {
           waveLayers.forEach(layer => {
@@ -87,9 +88,9 @@ export class Game extends Phaser.Scene {
         }
       });
 
-      //Player
+      //Player and their spawn location
       //----------------------------------------------------      
-      this.player = new Player(this, 100, 300);
+      this.player = new Player(this, 585, 475);
 
       this.keys = this.input.keyboard.addKeys({
             up: Phaser.Input.Keyboard.KeyCodes.W,

@@ -164,7 +164,7 @@
         "Map.tmx"
     ],
     "project": "untitled.tiled-project",
-    "property.type": "string",
+    "property.type": "bool",
     "recentFiles": [
         "Map.tmx",
         "tilesets/map_tileset.tsx",

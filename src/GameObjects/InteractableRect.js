@@ -40,7 +40,7 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
     const p = this.scene.player;
     const px = p.x, py = p.y + p.displayHeight/2;
     const zx = this.body.center.x, zy = this.body.center.y;
-    if (Phaser.Math.Distance.Between(px, py, zx, zy) < 40) {
+    if (Phaser.Math.Distance.Between(px, py, zx, zy) < Math.max(this.body.width,this.body.height)) {
       return true;
     }
     else {
@@ -50,12 +50,13 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
 
   interact(action){
     if(this.checkInteraction()){
-      if(this.name === 'Statue'){
+      if(this.name === 'ricardosLore'){
         this.scene.scene.launch('ricardosLore');
       }
     }
 
     else {
+      //TODO: Implement Path finding algorithm that draws sketches the path to follow
       console.warn('Too far from:', this.name);
     }
   }
