@@ -13,7 +13,7 @@ export class ricardosLore extends Phaser.Scene {
     
     // 2) close button
     this.closeButton = this.add.text(0, 0, '✕', {
-      fontSize: '32px', color: '#FFFFFF'
+      fontSize: '32px', color: '#000000'
     })
     .setInteractive({ useHandCursor: true })
     .setDepth(2)
@@ -29,7 +29,7 @@ export class ricardosLore extends Phaser.Scene {
     this.icons = [
       {
         key: 'cv-sprite',
-        label: 'Curriculum Vitae',
+        label: 'CV',
         callback: () => window.open(
           '../../assets/professional-files/Ricardo\'s CV-Computer Science-Summer 2025.pdf',
           '_blank')
@@ -60,7 +60,7 @@ export class ricardosLore extends Phaser.Scene {
 
         // Title for each icon
       const txt = this.add.text(0, 0, data.label, {
-        fontSize: '18px', color: '#FFFFFF', align: 'center'
+        fontSize: '32px', color: '#000000', align: 'center'
       }).setDepth(this.background.depth + 1).setOrigin(0.5, 0);
 
       this.iconImages.push(img);
@@ -68,25 +68,31 @@ export class ricardosLore extends Phaser.Scene {
     });
 
     // 5) perform initial layout
-    this.updateLayout({ 
-      width: this.scale.width, 
-      height: this.scale.height 
-    });
+    this.updateLayout();
 
     // 6) listen for resize
-    this.scale.on('resize', (gameSize) => this.updateLayout(gameSize));
+    this.scale.on('resize', () => this.updateLayout());
   }
 
-  updateLayout({ width, height }) {
-    const backgroundWidth = width * 0.8;
-    const backgroundHeight = height * 0.8;
-    const cx = width / 2, cy = height / 2;
+  updateLayout() {
+    // 1) grab the real live canvas size
+    const width  = this.scale.width;
+    const height = this.scale.height;
 
-    // background
-    this.background.setPosition(cx, cy).setSize(backgroundWidth, backgroundHeight);
+    // 2) take 80% for background size
+    const backgroundWidth  = width  * 0.6;
+    const backgroundHeight = height * 0.6;
 
-    // close button in top-right of bg
-    
+    // 3) center point
+    const cx = width  / 2;
+    const cy = height / 2;
+
+    // 4) position & size the background
+    this.background
+      .setPosition(cx, cy)
+      .setSize(backgroundWidth, backgroundHeight);
+
+    // 5) close-button sits in the top-right of that background
     this.closeButton
       .setPosition(cx + backgroundWidth/2 - 10, cy - backgroundHeight/2 + 10)
       .setOrigin(1, 0);
@@ -94,19 +100,22 @@ export class ricardosLore extends Phaser.Scene {
     this.closeButtonBackground
       .setPosition(this.closeButton.x, this.closeButton.y)
       .setOrigin(1, 0)
-      .setSize(this.closeButton.width, this.closeButton.height-5);
+      .setSize(this.closeButton.width, this.closeButton.height - 5);
 
-    // icon spacing
-    const ICONSIZE = Math.min(backgroundWidth, backgroundHeight) * 0.25; // 15% of smaller dim
+    // 6) icon sizing & spacing exactly as before
+    const ICONSIZE     = Math.min(backgroundWidth, backgroundHeight) * 0.25;
+    const TEXTOFFSET = 0.5;
     const HOVERSCALING = 2;
-    const SPAN = backgroundWidth * 0.6; // total horizontal span
-    const startX = cx - SPAN/2;                   
-    const spacing = SPAN / (this.iconImages.length - 1);
+    const SPANW = backgroundWidth * 0.6;
+    const SPANH = backgroundHeight *0.6;
+    const startX = cx - SPANW/2;
+    const startY = cy - SPANH/5;
+    const spacing = SPANW / (this.iconImages.length - 1);
 
     // position each icon + label
     this.iconImages.forEach((img, i) => {
-      const x = startX + spacing * i;
-      const y = cy; 
+      const x = startX + spacing * i; 
+      const y = startY ;
 
       img
         .setPosition(x, y)
@@ -115,7 +124,8 @@ export class ricardosLore extends Phaser.Scene {
         .on('pointerout', () => img.setDisplaySize(ICONSIZE, ICONSIZE));
 
       this.iconLabels[i]
-        .setPosition(x, y + ICONSIZE/2 + 8); // label 8px below icon
+        .setPosition(x, y + ICONSIZE/2 + ICONSIZE * TEXTOFFSET)
+        .setStyle({ fontStyle: 'bold' }); 
     });
   }
 }
