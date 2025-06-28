@@ -56,19 +56,19 @@ export class ricardosLore extends Phaser.Scene {
     this.iconLabels = [];
 
     this.icons.forEach((data, idx) => {
-      const img = this.add.image(0, 0, data.key)
-        .setInteractive({ useHandCursor: true })
-        .setDepth(this.background.depth + 1)
-        .on('pointerdown', data.callback);
+        const img = this.add.image(0, 0, data.key)
+          .setInteractive({ useHandCursor: true })
+          .setDepth(this.background.depth + 1)
+          .on('pointerdown', data.callback);
 
-        // Title for each icon
-      const txt = this.add.text(0, 0, data.label, {
-        fontSize: '32px', color: '#000000', align: 'center'
-      }).setDepth(this.background.depth + 1).setOrigin(0.5, 0);
+          // Title for each icon
+        const txt = this.add.text(0, 0, data.label, {
+          fontSize: '32px', color: '#000000', align: 'center'
+        }).setDepth(this.background.depth + 1).setOrigin(0.5, 0);
 
-      this.iconImages.push(img);
-      this.iconLabels.push(txt);
-    });
+        this.iconImages.push(img);
+        this.iconLabels.push(txt);
+      });
 
     // 5) perform initial layout
     this.updateLayout();
@@ -133,18 +133,25 @@ export class ricardosLore extends Phaser.Scene {
 
     // position each icon + label
     this.iconImages.forEach((img, i) => {
-      const x = startX + spacing * i; 
-      const y = startY ;
+      const iconX = startX + spacing * i; 
+      const iconY = startY ;
+      
 
       img
-        .setPosition(x, y)
+        .setPosition(iconX, iconY)
         .setDisplaySize(ICONSIZE, ICONSIZE)
         .on('pointerover', () => img.setDisplaySize(ICONSIZE * HOVERSCALING, ICONSIZE * HOVERSCALING))
         .on('pointerout', () => img.setDisplaySize(ICONSIZE, ICONSIZE));
 
+      const dynamicFontSize = Math.round(backgroundWidth * 0.05);
+      
       this.iconLabels[i]
-        .setPosition(x, y + ICONSIZE/2 + ICONSIZE * TEXTOFFSET)
-        .setStyle({ fontStyle: 'bold' }); 
+        .setPosition(iconX, iconY + ICONSIZE/2 + ICONSIZE * TEXTOFFSET)
+        .setFontSize(dynamicFontSize)
+        .setStyle({ fontStyle: 'bold',
+                    color: '#000000',
+                    align: 'center'})
+        .setOrigin(0.5, 0.5)
     });
   }
 }
