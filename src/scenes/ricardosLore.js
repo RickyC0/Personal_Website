@@ -98,6 +98,10 @@ export class ricardosLore extends Phaser.Scene {
       .setDepth(this.cameras.main.depth - 1);
 
     // Draw the border of the background
+    if(this.backgroundBorder){
+      this.backgroundBorder.destroy();
+    }
+    
     this.backgroundBorder = this.add.rectangle(
       backgroundCenterX,
       backgroundCenterY,
