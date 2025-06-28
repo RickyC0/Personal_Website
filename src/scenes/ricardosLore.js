@@ -7,9 +7,12 @@ export class ricardosLore extends Phaser.Scene {
 
   create() {
     // 1) background
-    this.background = this.add.rectangle(0, 0, 0, 0, this.backgroundColor)
-      .setDepth(0)
-      .setStrokeStyle(2, 0x000000);
+    this.background = this.add.image(0, 0, 'brick-background')
+      .setOrigin(0)
+      .setDepth(this.cameras.main.depth - 1)
+      
+      .setDisplaySize(this.cameras.main.width, this.cameras.main.height);
+
     
     // 2) close button
     this.closeButton = this.add.text(0, 0, '✕', {
@@ -79,22 +82,38 @@ export class ricardosLore extends Phaser.Scene {
     const width  = this.scale.width;
     const height = this.scale.height;
 
-    // 2) take 80% for background size
+    // 2) take 60% for background size
     const backgroundWidth  = width  * 0.6;
     const backgroundHeight = height * 0.6;
 
     // 3) center point
-    const cx = width  / 2;
-    const cy = height / 2;
+    const backgroundCenterX = width  / 2;
+    const backgroundCenterY = height / 2;
 
     // 4) position & size the background
     this.background
-      .setPosition(cx, cy)
-      .setSize(backgroundWidth, backgroundHeight);
+      .setOrigin(0.5, 0.5)
+      .setPosition(backgroundCenterX, backgroundCenterY)
+      .setDisplaySize(backgroundWidth, backgroundHeight)
+      .setDepth(this.cameras.main.depth - 1);
+
+    // Draw the border of the background
+    this.backgroundBorder = this.add.rectangle(
+      backgroundCenterX,
+      backgroundCenterY,
+      backgroundWidth,
+      backgroundHeight,
+      0x000000,
+      0 //fillAlpha 0 to not overlap with the background
+    )
+      .setOrigin(0.5, 0.5)
+      .setStrokeStyle(4, 0x000000) // 4px black outline
+      .setDepth(this.background.depth + 1);
+
 
     // 5) close-button sits in the top-right of that background
     this.closeButton
-      .setPosition(cx + backgroundWidth/2 - 10, cy - backgroundHeight/2 + 10)
+      .setPosition(backgroundCenterX + backgroundWidth/2 - 10, backgroundCenterY - backgroundHeight/2 + 10)
       .setOrigin(1, 0);
 
     this.closeButtonBackground
@@ -108,8 +127,8 @@ export class ricardosLore extends Phaser.Scene {
     const HOVERSCALING = 2;
     const SPANW = backgroundWidth * 0.6;
     const SPANH = backgroundHeight *0.6;
-    const startX = cx - SPANW/2;
-    const startY = cy - SPANH/5;
+    const startX = backgroundCenterX - SPANW/2;
+    const startY = backgroundCenterY - SPANH/5;
     const spacing = SPANW / (this.iconImages.length - 1);
 
     // position each icon + label

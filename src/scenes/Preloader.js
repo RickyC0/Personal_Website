@@ -27,6 +27,7 @@ export class Preloader extends Phaser.Scene {
     );
 
     // 4) Assets to load later
+    this.load.image('brick-background','custom-sprites/light-brown-background.png');
     this.load.image('cv-sprite', 'custom-sprites/cv-sprite.png');
     this.load.image('projects-sprite', 'custom-sprites/light-bulb.png');
     this.load.image('education-sprite', 'custom-sprites/graduation-hat.png');
