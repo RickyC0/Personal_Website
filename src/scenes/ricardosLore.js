@@ -47,7 +47,7 @@ export class ricardosLore extends Phaser.Scene {
         key: 'education-sprite',
         label: 'Education',
         //TODO: replace with actual callback
-        callback: () => console.log('Education clicked')
+        callback: () => window.open('https://www.linkedin.com/in/ricardorajichahine/')
       }
     ];
 
@@ -77,6 +77,7 @@ export class ricardosLore extends Phaser.Scene {
     this.scale.on('resize', () => this.updateLayout());
   }
 
+  // This function deals with the styling and resizing of the scene
   updateLayout() {
     // 1) grab the real live canvas size
     const width  = this.scale.width;

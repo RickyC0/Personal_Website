@@ -5,8 +5,8 @@
     },
     "activeFile": "Map.tmx",
     "expandedProjectPaths": [
-        "custom-sprites",
         ".",
+        "custom-sprites",
         "tilesets"
     ],
     "file.lastUsedOpenFilter": "All Files (*)",
@@ -55,15 +55,13 @@
         },
         "Map.tmx": {
             "expandedGroupLayers": [
-                30,
-                29,
                 28
             ],
-            "scale": 5.5,
+            "scale": 1,
             "selectedLayer": 5,
             "viewCenter": {
-                "x": 585.5454545454545,
-                "y": 510.27272727272725
+                "x": 438.5,
+                "y": 307.5
             }
         },
         "Map.tmx#ForBuildings": {
@@ -73,7 +71,7 @@
             "scaleInEditor": 1
         },
         "Map.tmx#MainTileset": {
-            "scaleInDock": 3,
+            "scaleInDock": 1.5,
             "scaleInEditor": 1
         },
         "Map.tmx#MainTilesetPNG": {
