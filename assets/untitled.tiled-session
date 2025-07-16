@@ -3,17 +3,27 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "Map.tmx",
+    "activeFile": "RicardosProjectsWorld.tmx",
     "expandedProjectPaths": [
         ".",
-        "custom-sprites",
-        "tilesets"
+        "tilesets",
+        "custom-sprites"
     ],
     "file.lastUsedOpenFilter": "All Files (*)",
     "fileStates": {
         "": {
             "scaleInDock": 1,
-            "scaleInEditor": 4
+            "scaleInEditor": 1
+        },
+        "#Color Palette": {
+            "scaleInDock": 1
+        },
+        "#clouds-sprites": {
+            "dynamicWrapping": false,
+            "scaleInDock": 0.5
+        },
+        "#clouds-sprites-smaller": {
+            "scaleInDock": 1
         },
         ":/automap-tiles.tsx": {
             "scaleInDock": 1
@@ -60,8 +70,8 @@
             "scale": 1,
             "selectedLayer": 5,
             "viewCenter": {
-                "x": 438.5,
-                "y": 307.5
+                "x": 480.5,
+                "y": 320
             }
         },
         "Map.tmx#ForBuildings": {
@@ -92,6 +102,40 @@
         },
         "Map2.tmx#map_tileset": {
             "scaleInDock": 0.33
+        },
+        "MovingClouds.tmx": {
+            "scale": 0.5,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 961,
+                "y": 640
+            }
+        },
+        "MovingClouds.tmx#Color Palette": {
+            "scaleInDock": 1
+        },
+        "MovingClouds.tmx#clouds-sprites-smaller": {
+            "scaleInDock": 1
+        },
+        "RicardosProjectsWorld.tmx": {
+            "scale": 1,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 275,
+                "y": 940.5
+            }
+        },
+        "RicardosProjectsWorld.tmx#Color Palette": {
+            "scaleInDock": 0.5,
+            "scaleInEditor": 1
+        },
+        "RicardosProjectsWorld.tmx#clouds-sprites": {
+            "scaleInDock": 0.25,
+            "scaleInEditor": 1
+        },
+        "RicardosProjectsWorld.tmx#clouds-sprites-smaller": {
+            "scaleInDock": 0.75,
+            "scaleInEditor": 1
         },
         "map_tileset.tsx": {
             "dynamicWrapping": false,
@@ -155,21 +199,25 @@
     },
     "last.exportedFilePath": "C:/Users/ricka/OneDrive - Concordia University - Canada/Desktop/Coding/Web/Personal_Website/assets",
     "last.externalTilesetPath": "C:/Users/ricka/OneDrive - Concordia University - Canada/Desktop/Coding/Web/Personal_Website/assets/tilesets",
-    "last.imagePath": "C:/Users/ricka/OneDrive - Concordia University - Canada/Desktop/Coding/Web/Personal_Website/assets/tilesets",
+    "last.imagePath": "C:/Users/ricka/OneDrive - Concordia University - Canada/Desktop/Coding/Web/Personal_Website/assets/custom-sprites",
     "lastUsedTilesetExportFilter": "JSON tileset files (*.tsj *.json)",
-    "map.height": 40,
+    "map.height": 160,
     "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
     "map.lastUsedFormat": "tmx",
     "map.tileHeight": 16,
     "map.tileWidth": 16,
-    "map.width": 60,
+    "map.width": 80,
     "openFiles": [
-        "Map.tmx"
+        "Map.tmx",
+        "RicardosProjectsWorld.tmx",
+        "MovingClouds.tmx"
     ],
     "project": "untitled.tiled-project",
     "property.type": "bool",
     "recentFiles": [
         "Map.tmx",
+        "MovingClouds.tmx",
+        "RicardosProjectsWorld.tmx",
         "tilesets/map_tileset.tsx",
         "tilesets/MapJson.json",
         "tilesets/FRLG Outside B.tsx",
@@ -178,16 +226,14 @@
         "tilesets/FRLG Outside A2A.tsx",
         "FRLG Outside A2A.tsx",
         "Characters 12.tsx",
-        "FRLG Outside B.tsx",
-        "map_tileset.tsx",
-        "tilesets/Books.tsx"
+        "FRLG Outside B.tsx"
     ],
     "tileset.embedInMap": true,
     "tileset.lastUsedFilter": "Tiled tileset files (*.tsx *.xml)",
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {
-        "height": 32,
-        "width": 32
+        "height": 16,
+        "width": 16
     },
     "tileset.transparentColor": "#ff00ff",
     "tileset.useTransparentColor": true

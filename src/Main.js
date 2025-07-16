@@ -2,6 +2,7 @@ import { Boot } from './scenes/Boot.js';
 import { Game } from './scenes/Game.js';
 import { Preloader } from './scenes/Preloader.js';
 import { ricardosLore } from './scenes/ricardosLore.js';
+import { RicardosProjects } from './scenes/RicardosProjects.js'
 
 const config = {
   type: Phaser.AUTO,
@@ -26,7 +27,7 @@ const config = {
     }
   },
 
-  scene: [Boot, Preloader, Game, ricardosLore]
+  scene: [Boot, Preloader, Game, ricardosLore, RicardosProjects]
 };
 
 window.addEventListener('load', () => {
