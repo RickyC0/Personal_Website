@@ -40,13 +40,24 @@ export class ricardosLore extends Phaser.Scene {
       {
         key: 'projects-sprite',
         label: 'Projects',
-        //TODO: replace with actual callback
-        callback: () => console.log('Projects clicked')
+        callback: () => {
+          
+          // Pause the Game scene
+          this.scene.pause('Game'); 
+
+          // Stop the RicardosLore scene
+          this.scene.stop('ricardosLore');
+
+          // Start the RicardosProjects scene
+          this.scene.start('RicardosProjects');
+          
+        }
+
       },
       {
         key: 'education-sprite',
         label: 'Education',
-        //TODO: replace with actual callback
+        
         callback: () => window.open('https://www.linkedin.com/in/ricardorajichahine/')
       }
     ];
@@ -74,7 +85,12 @@ export class ricardosLore extends Phaser.Scene {
     this.updateLayout();
 
     // 6) listen for resize
-    this.scale.on('resize', () => this.updateLayout());
+    this.resizeHandler = () => this.updateLayout();
+    this.scale.on('resize', this.resizeHandler);
+
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.scale.off('resize', this.resizeHandler);
+    });
   }
 
   // This function deals with the styling and resizing of the scene
@@ -120,11 +136,12 @@ export class ricardosLore extends Phaser.Scene {
     this.closeButton
       .setPosition(backgroundCenterX + backgroundWidth/2 - 10, backgroundCenterY - backgroundHeight/2 + 10)
       .setOrigin(1, 0);
-
+    
     this.closeButtonBackground
       .setPosition(this.closeButton.x, this.closeButton.y)
       .setOrigin(1, 0)
       .setSize(this.closeButton.width, this.closeButton.height - 5);
+
 
     // 6) icon sizing & spacing exactly as before
     const ICONSIZE     = Math.min(backgroundWidth, backgroundHeight) * 0.25;
