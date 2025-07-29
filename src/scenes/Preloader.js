@@ -32,6 +32,27 @@ export class Preloader extends Phaser.Scene {
     this.load.image('projects-sprite', 'custom-sprites/light-bulb.png');
     this.load.image('education-sprite', 'custom-sprites/graduation-hat.png');
 
+    //Projects world
+    this.load.tilemapTiledJSON('ricardosProjectsMap', 'RicardosProjectsWorldJson.json');
+    this.load.tilemapTiledJSON('movingCloudsMap', 'MovingCloudsJson.json')
+
+    this.load.spritesheet('clouds-spritesheet', // key to reference in Phaser
+      'custom-sprites/clouds-sprites-smaller.png',
+      {
+        frameWidth: 16,
+        frameHeight: 16
+      }
+    );
+
+    this.load.spritesheet('colors-spritesheet', // key to reference in Phaser
+      'custom-sprites/Color Palette.png',
+      {
+        frameWidth: 16,
+        frameHeight: 16
+      }
+    );
+
+
   }
 
   create() {

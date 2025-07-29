@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="120" height="80" tilewidth="16" tileheight="16" infinite="0" nextlayerid="4" nextobjectid="1">
+ <editorsettings>
+  <export target="MovingCloudsJson.json" format="json"/>
+ </editorsettings>
  <tileset firstgid="1" name="clouds-sprites-smaller" tilewidth="16" tileheight="16" tilecount="484" columns="22">
-  <image source="custom-sprites/clouds-sprites-smaller.png" trans="ff00ff" width="358" height="358"/>
+  <image source="custom-sprites/clouds-sprites-smaller.png" trans="ff00ff" width="352" height="352"/>
  </tileset>
  <tileset firstgid="485" name="Color Palette" tilewidth="16" tileheight="16" tilecount="4096" columns="64">
   <image source="custom-sprites/Color Palette.png" trans="ff00ff" width="1024" height="1024"/>
