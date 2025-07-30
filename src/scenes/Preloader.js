@@ -36,6 +36,13 @@ export class Preloader extends Phaser.Scene {
     this.load.tilemapTiledJSON('ricardosProjectsMap', 'RicardosProjectsWorldJson.json');
     this.load.tilemapTiledJSON('movingCloudsMap', 'MovingCloudsJson.json')
 
+    //Projects images themselves:
+    //DND
+    this.load.image('level-1', 'professional-files/DND-Game/level-1.png');
+    this.load.image('turret-rc-car-2','professional-files/RC-Car/turret-rc-car-2.jpg');
+    this.load.image('concordia-virtual-tour-cover','professional-files/Concordia-Virtual-tour/concordia-virtual-tour-cover.png');
+
+
     this.load.spritesheet('clouds-spritesheet', // key to reference in Phaser
       'custom-sprites/clouds-sprites-smaller.png',
       {

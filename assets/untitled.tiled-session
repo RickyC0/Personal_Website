@@ -5,8 +5,8 @@
     },
     "activeFile": "RicardosProjectsWorld.tmx",
     "expandedProjectPaths": [
-        "tilesets",
         ".",
+        "tilesets",
         "custom-sprites"
     ],
     "file.lastUsedOpenFilter": "All Files (*)",
@@ -64,11 +64,11 @@
             "scaleInEditor": 0.5
         },
         "Map.tmx": {
-            "scale": 1,
-            "selectedLayer": 0,
+            "scale": 2,
+            "selectedLayer": 35,
             "viewCenter": {
-                "x": 480.5,
-                "y": 320
+                "x": 576.5,
+                "y": 300.25
             }
         },
         "Map.tmx#ForBuildings": {
@@ -101,11 +101,11 @@
             "scaleInDock": 0.33
         },
         "MovingClouds.tmx": {
-            "scale": 0.5,
+            "scale": 0.33,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 878,
-                "y": 667
+                "x": 1634.8484848484848,
+                "y": 639.3939393939394
             }
         },
         "MovingClouds.tmx#Color Palette": {
@@ -117,16 +117,22 @@
             "scaleInEditor": 1
         },
         "RicardosProjectsWorld.tmx": {
+            "expandedObjectLayers": [
+                9
+            ],
             "scale": 2,
-            "selectedLayer": 0,
+            "selectedLayer": 5,
             "viewCenter": {
-                "x": 401,
-                "y": 1090.25
+                "x": 222,
+                "y": 1021.75
             }
         },
         "RicardosProjectsWorld.tmx#Color Palette": {
             "scaleInDock": 0.5,
             "scaleInEditor": 1
+        },
+        "RicardosProjectsWorld.tmx#MainTilesetPNG": {
+            "scaleInDock": 2
         },
         "RicardosProjectsWorld.tmx#clouds-sprites": {
             "scaleInDock": 0.25,
@@ -198,7 +204,7 @@
     },
     "last.exportedFilePath": "C:/Users/ricka/OneDrive - Concordia University - Canada/Desktop/Coding/Web/Personal_Website/assets",
     "last.externalTilesetPath": "C:/Users/ricka/OneDrive - Concordia University - Canada/Desktop/Coding/Web/Personal_Website/assets/tilesets",
-    "last.imagePath": "C:/Users/ricka/OneDrive - Concordia University - Canada/Desktop/Coding/Web/Personal_Website/assets/custom-sprites",
+    "last.imagePath": "C:/Users/ricka/OneDrive - Concordia University - Canada/Desktop/Coding/Web/Personal_Website/assets/tilesets",
     "lastUsedTilesetExportFilter": "JSON tileset files (*.tsj *.json)",
     "map.height": 160,
     "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",

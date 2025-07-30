@@ -1,4 +1,6 @@
 import { Player } from '../GameObjects/Player.js';
+import { InteractableRect } from '../GameObjects/InteractableRect.js';
+
 
 export class RicardosProjects extends Phaser.Scene{
     constructor(){
@@ -15,6 +17,7 @@ export class RicardosProjects extends Phaser.Scene{
 
         const cloudsTileset = this.map.addTilesetImage('clouds-sprites-smaller', 'clouds-spritesheet');
         const colorsTileset = this.map.addTilesetImage('Color Palette', 'colors-spritesheet');
+        const mainTileset = this.map.addTilesetImage('MainTilesetPNG', 'tileset')
 
         // Display the layers of the background map
         this.backgroundLayerMap = {};
@@ -34,6 +37,7 @@ export class RicardosProjects extends Phaser.Scene{
 
         //CENTERING THE MAP
         // --------------------------------------------------------
+        //TODO
         
 
         //----------------------------------------------------------
@@ -43,7 +47,7 @@ export class RicardosProjects extends Phaser.Scene{
         this.map.layers.forEach(layerData => {
             const layer = this.map.createLayer(
                 layerData.name,
-                [cloudsTileset, colorsTileset], // use both tilesets here
+                [cloudsTileset, colorsTileset, mainTileset], // use both tilesets here
                 this.MAPOFFSETX, //X-offset 
                 this.MAPOFFSETY  //Y-offset
             );
@@ -138,6 +142,24 @@ export class RicardosProjects extends Phaser.Scene{
       
 
       this.physics.add.collider(this.player, this.collision);
+
+      //Adding interactable objects' logic
+      // 1) set up “press Enter” key once
+      this.interactKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+
+      // 2) group to keep references
+      this.interactables = this.add.group();
+
+      // 3) pull the ractangles to interact with from the Interactables object layer
+      const interactableObjects = this.map.getObjectLayer('Interactables')?.objects || [];
+
+      interactableObjects.forEach(obj => {
+        // compute world‐space x/y exactly as your map layers use it
+        const worldX = obj.width/2 + obj.x + this.MAPOFFSETX;
+        const worldY = obj.height/2 + obj.y + this.MAPOFFSETY;
+        const zone   = new InteractableRect(this, obj, worldX, worldY);
+        this.interactables.add(zone);
+      });
 
 
     }
