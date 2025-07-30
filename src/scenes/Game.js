@@ -20,7 +20,8 @@ export class Game extends Phaser.Scene {
         scene.cameras.main.centerOn(map.widthInPixels / 2, map.heightInPixels / 2);
       };
 
-      this.cursors = this.input.keyboard.createCursorKeys();
+      
+
       this.map = this.make.tilemap({ key: 'map' });
 
       //Here the tileset name should be the name of the tileset in TILED and not the PNG
@@ -91,6 +92,8 @@ export class Game extends Phaser.Scene {
       //Player and their spawn location
       //----------------------------------------------------      
       this.player = new Player(this, 585, 475);
+
+      this.cursors = this.input.keyboard.createCursorKeys();
 
       this.keys = this.input.keyboard.addKeys({
             up: Phaser.Input.Keyboard.KeyCodes.W,

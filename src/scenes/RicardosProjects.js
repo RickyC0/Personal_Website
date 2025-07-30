@@ -1,10 +1,14 @@
+import { Player } from '../GameObjects/Player.js';
 
 export class RicardosProjects extends Phaser.Scene{
     constructor(){
         super({key: 'RicardosProjects'});
         this.cloudOffsetX = 0;
         this.CLOUDMOVEMENTSPEED = 32; //pixels
-        this.CLOUDRESETLIMIT = 320; //TODO
+        this.CLOUDRESETLIMIT = 320; //TODO TO VERIFY
+
+        this.MAPOFFSETX= 650;
+        this.MAPOFFSETY= -350;
     }
 
     create(){
@@ -31,10 +35,19 @@ export class RicardosProjects extends Phaser.Scene{
             this.cloudsLayerMap[layerData.name] = this.map.createLayer(
                 layerData.name,
                 [cloudsTileset, colorsTileset], // use both tilesets here
-                650, //X-offset 
-                -350  //Y-offset
+                this.MAPOFFSETX, //X-offset 
+                this.MAPOFFSETY  //Y-offset
             );
         });
+
+        //Setting bounds to the map
+
+        this.physics.world.setBounds(
+          this.MAPOFFSETX, 
+          this.MAPOFFSETY,
+          this.map.widthInPixels,
+          this.map.heightInPixels
+        );
 
         
         this.applyResize(this, this.map);
@@ -57,6 +70,50 @@ export class RicardosProjects extends Phaser.Scene{
             callbackScope: this,
             loop: true
         });
+
+        //Player and their spawn location
+      //----------------------------------------------------      
+      this.player = new Player(this, 60*16, 50*16);
+
+      this.cursors = this.input.keyboard.createCursorKeys();
+
+      this.keys = this.input.keyboard.addKeys({
+            up: Phaser.Input.Keyboard.KeyCodes.W,
+            down: Phaser.Input.Keyboard.KeyCodes.S,
+            left: Phaser.Input.Keyboard.KeyCodes.A,
+            right: Phaser.Input.Keyboard.KeyCodes.D
+        });
+      //----------------------------------------------------
+
+      //Collision with object and limit to the map
+      //----------------------------------------------------
+      const collisionLayer = this.map.getObjectLayer('Collision');
+
+      this.collision = this.physics.add.staticGroup(); // Create group for collision
+
+      if (collisionLayer) {
+        collisionLayer.objects.forEach(obj => {
+
+        let shape;
+    
+        shape = this.add.rectangle(
+        obj.x + obj.width / 2 + this.MAPOFFSETX,
+        obj.y + obj.height / 2 +this.MAPOFFSETY,
+        obj.width,
+        obj.height,
+        0, //color of the borders
+        0 //opacity
+        );
+
+        this.physics.add.existing(shape, true); // Make it static
+        this.collision.add(shape); // Add to group
+        });
+      }
+      
+
+      this.physics.add.collider(this.player, this.collision);
+
+
     }
 
     applyResize(scene, tilemap) {
@@ -84,6 +141,19 @@ export class RicardosProjects extends Phaser.Scene{
     }
 
     update(){
-        
+      const cursors = this.cursors;
+      const keys = this.keys;
+
+      if (cursors.left.isDown || keys.left.isDown) {
+        this.player.moveLeft();
+      } else if (cursors.right.isDown || keys.right.isDown) {
+        this.player.moveRight();
+      } else if (cursors.up.isDown || keys.up.isDown) {
+        this.player.moveUp();
+      } else if (cursors.down.isDown || keys.down.isDown) {
+        this.player.moveDown();
+      } else {
+        this.player.idle();
+      }
     }
 }   
