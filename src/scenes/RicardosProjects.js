@@ -3,9 +3,7 @@ import { Player } from '../GameObjects/Player.js';
 export class RicardosProjects extends Phaser.Scene{
     constructor(){
         super({key: 'RicardosProjects'});
-        this.cloudOffsetX = 0;
-        this.CLOUDMOVEMENTSPEED = 32; //pixels
-        this.CLOUDRESETLIMIT = 320; //TODO TO VERIFY
+        this.CLOUDMOVEMENTSPEED = 64; //pixels
 
         this.MAPOFFSETX= 650;
         this.MAPOFFSETY= -350;
@@ -21,35 +19,46 @@ export class RicardosProjects extends Phaser.Scene{
         // Display the layers of the background map
         this.backgroundLayerMap = {};
         this.movingCloudsBackground.layers.forEach(layerData => {
-            this.backgroundLayerMap[layerData.name] = this.movingCloudsBackground.createLayer(
+            const layer = this.movingCloudsBackground.createLayer(
                 layerData.name,
                 [cloudsTileset, colorsTileset], //use both tilesets here
                 0, //X-offset 
                 0  //Y-offset
             );
+          // detach from camera movement
+          layer.setScrollFactor(0);
+
+          this.backgroundLayerMap[layerData.name] = layer;
         });
+        // -----------------------------------------------------
+
+        //CENTERING THE MAP
+        // --------------------------------------------------------
+        
+
+        //----------------------------------------------------------
 
         // Display the layers of the main clouds map
         this.cloudsLayerMap = {};
         this.map.layers.forEach(layerData => {
-            this.cloudsLayerMap[layerData.name] = this.map.createLayer(
+            const layer = this.map.createLayer(
                 layerData.name,
                 [cloudsTileset, colorsTileset], // use both tilesets here
                 this.MAPOFFSETX, //X-offset 
                 this.MAPOFFSETY  //Y-offset
             );
+
+            this.cloudsLayerMap[layerData.name] = layer;
         });
 
-        //Setting bounds to the map
-
-        this.physics.world.setBounds(
-          this.MAPOFFSETX, 
-          this.MAPOFFSETY,
-          this.map.widthInPixels,
-          this.map.heightInPixels
-        );
-
         
+      
+
+        //Offset of the background layer TODO VERIFY
+        this.cloudOffsetX = 0;
+
+
+        //TODO: SOME RESIZING FUNCTION THAT SCALES BOTH THE BACKGROUND AND THE MAP, BUT SEPARATLY, SINCE THEY HAVE DIFFERENT SIZES
         this.applyResize(this, this.map);
         this.applyResize(this, this.movingCloudsBackground);
 
@@ -63,16 +72,24 @@ export class RicardosProjects extends Phaser.Scene{
             this.scale.off('resize', this.resizeHandler);
         });
 
-        //Set up the repeating timer to move the cloud background every second
-        this.time.addEvent({
-            delay: 1000, // 1 second
-            callback: this.moveCloudsRight,
-            callbackScope: this,
-            loop: true
-        });
+      //Camera Movements lIMIT
+      this.cameras.main.setBounds(
+        this.MAPOFFSETX/2,
+        this.MAPOFFSETY/2,
+        this.map.widthInPixels,
+        this.map.heightInPixels
+      );
 
-        //Player and their spawn location
-      //----------------------------------------------------      
+      //Setting bounds to the map
+      
+      this.physics.world.setBounds(
+        this.MAPOFFSETX, 
+        this.MAPOFFSETY,
+        this.map.widthInPixels,
+        this.map.heightInPixels
+      );
+
+      //TODO: CHANGE PLAYER SPAWN COORDINATES TO MAKE THEM NOT HARDCODED
       this.player = new Player(this, 60*16, 50*16);
 
       this.cursors = this.input.keyboard.createCursorKeys();
@@ -84,6 +101,15 @@ export class RicardosProjects extends Phaser.Scene{
             right: Phaser.Input.Keyboard.KeyCodes.D
         });
       //----------------------------------------------------
+
+      //Camera MOvements to follow the player
+      //--------------------------------------------
+      this.cameras.main.startFollow(
+        this.player,    
+        false, // roundPixels
+        0.1, // lerpX (0 = no follow in X, 1 = lock perfectly)
+        0.1  // lerpY (0 = no follow in Y, 1 = lock perfectly)
+      );
 
       //Collision with object and limit to the map
       //----------------------------------------------------
@@ -116,6 +142,7 @@ export class RicardosProjects extends Phaser.Scene{
 
     }
 
+    //TODO: CHANGE THIS FUNCTION BECAUSE THIS IS INCORRECT
     applyResize(scene, tilemap) {
         const gameSize = scene.scale.gameSize;
         const zoom = gameSize.width  / tilemap.heightInPixels;
@@ -127,20 +154,37 @@ export class RicardosProjects extends Phaser.Scene{
         scene.cameras.main.centerOn(centerX, centerY);
     }
 
-    moveCloudsRight(){
-        this.cloudOffsetX +=this.CLOUDMOVEMENTSPEED;
+    moveCloudsRight(delta){
+      // 1) advance the offset (px per second)
+      this.cloudOffsetX += this.CLOUDMOVEMENTSPEED * (delta / 1000);
 
-        if(this.cloudOffsetX >= this.CLOUDRESETLIMIT){
-            this.cloudOffsetX=0;
-        }
+      // 2) grab screen width
+      const screenWidth   = this.scale.gameSize.width;
+      const cloudMapWidth = this.movingCloudsBackground.widthInPixels;
 
-        for(const layerName in this.backgroundLayerMap){
-            const layer = this.backgroundLayerMap[layerName];
-            layer.setPosition(this.cloudOffsetX,0);
-        }
+      // 3) how much extra map we have beyond one screen
+      const wrapDistance = cloudMapWidth - screenWidth;
+
+      // 4) wrap that extra bit only
+      //    (ensure positive remainder even if cloudOffsetX overshoots)
+      this.cloudOffsetX = ((this.cloudOffsetX % wrapDistance) + wrapDistance) % wrapDistance;
+
+      // 5) baseX = flush‑right on screen when offset = 0
+      const baseX   = screenWidth - cloudMapWidth;
+
+      // 6) final x = baseX + your animated offset
+      const targetX = baseX + this.cloudOffsetX;
+
+      //TODO: CHANGE THIS TO MAKE IT NOT HARDCODED
+      const targetY = -50;
+
+      // 7) apply to every cloud layer
+      for (const layer of Object.values(this.backgroundLayerMap)) {
+        layer.setPosition(targetX, targetY);
+      }
     }
 
-    update(){
+    update(time, delta){
       const cursors = this.cursors;
       const keys = this.keys;
 
@@ -155,5 +199,10 @@ export class RicardosProjects extends Phaser.Scene{
       } else {
         this.player.idle();
       }
+
+
+      //Background movement
+      this.moveCloudsRight(delta);
+      
     }
 }   
