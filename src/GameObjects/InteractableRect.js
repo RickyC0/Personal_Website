@@ -73,9 +73,9 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
 
     //The rectangle will either contain:
     //a) AN IMAGE
-    if (this.tileProps['img 1']) {
+    if (this.tileProps['cover']) {
       //TODO: CLEAN UP THE WAY WE PRELOAD IMAGES
-      const fullPath = this.tileProps['img 1']; 
+      const fullPath = this.tileProps['cover']; 
       // "C:/…/level-1.png"
 
       // 1) grab only the filename

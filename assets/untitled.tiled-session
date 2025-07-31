@@ -5,9 +5,9 @@
     },
     "activeFile": "RicardosProjectsWorld.tmx",
     "expandedProjectPaths": [
-        ".",
         "tilesets",
-        "custom-sprites"
+        "custom-sprites",
+        "."
     ],
     "file.lastUsedOpenFilter": "All Files (*)",
     "fileStates": {
@@ -67,8 +67,8 @@
             "scale": 2,
             "selectedLayer": 35,
             "viewCenter": {
-                "x": 576.5,
-                "y": 300.25
+                "x": 480.25,
+                "y": 320
             }
         },
         "Map.tmx#ForBuildings": {
@@ -118,13 +118,14 @@
         },
         "RicardosProjectsWorld.tmx": {
             "expandedObjectLayers": [
+                7,
                 9
             ],
             "scale": 2,
             "selectedLayer": 5,
             "viewCenter": {
-                "x": 222,
-                "y": 1021.75
+                "x": 288,
+                "y": 640
             }
         },
         "RicardosProjectsWorld.tmx#Color Palette": {
@@ -218,7 +219,7 @@
         "MovingClouds.tmx"
     ],
     "project": "untitled.tiled-project",
-    "property.type": "bool",
+    "property.type": "file",
     "recentFiles": [
         "Map.tmx",
         "MovingClouds.tmx",

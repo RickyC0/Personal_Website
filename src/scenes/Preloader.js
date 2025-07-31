@@ -38,7 +38,7 @@ export class Preloader extends Phaser.Scene {
 
     //Projects images themselves:
     //DND
-    this.load.image('level-1', 'professional-files/DND-Game/level-1.png');
+    this.load.image('dnd-cover', 'professional-files/DND-Game/dnd-cover.jpg');
     this.load.image('turret-rc-car-2','professional-files/RC-Car/turret-rc-car-2.jpg');
     this.load.image('concordia-virtual-tour-cover','professional-files/Concordia-Virtual-tour/concordia-virtual-tour-cover.png');
 
