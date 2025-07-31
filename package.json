@@ -1,16 +1,18 @@
 {
   "name": "ricardos-pokemon-website",
   "version": "1.0.0",
-  "description": "",
+  "description": "A Phaser-based portfolio site",
   "main": "src/Main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "http-server . -p 3000 --cors"
+    "gen:manifest": "node scripts/generateImageManifest.js",
+    "start":       "npm run gen:manifest && serve ."
+  },
+  "dependencies": {
+    "phaser": "^3.60.0"
   },
   "devDependencies": {
-    "http-server": "^14.1.1"
+    "serve": "^14.2.0"
   },
-  "keywords": ["personal", "website", "static", "server", "Ricardo", "Chahine"],
-  "author": "",
-  "license": "ISC"
+  "author": "Ricardo RAJI CHAHINE",
+  "license": "MIT"
 }

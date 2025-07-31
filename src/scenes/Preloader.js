@@ -9,6 +9,9 @@ export class Preloader extends Phaser.Scene {
 
     // 1) Tilemap JSON
     this.load.tilemapTiledJSON('map', 'MapJson.json');
+      //Projects world
+    this.load.tilemapTiledJSON('ricardosProjectsMap', 'RicardosProjectsWorldJson.json');
+    this.load.tilemapTiledJSON('movingCloudsMap', 'MovingCloudsJson.json')
 
     // 2) Tileset as a spritesheet 
     this.load.spritesheet(
@@ -20,29 +23,7 @@ export class Preloader extends Phaser.Scene {
       }
     );
 
-    // 3) player
-    this.load.spritesheet('Snorlax-player',
-      'Snorlax.png',
-      { frameWidth: 84, frameHeight: 102 }
-    );
-
-    // 4) Assets to load later
-    this.load.image('brick-background','custom-sprites/light-brown-background.png');
-    this.load.image('cv-sprite', 'custom-sprites/cv-sprite.png');
-    this.load.image('projects-sprite', 'custom-sprites/light-bulb.png');
-    this.load.image('education-sprite', 'custom-sprites/graduation-hat.png');
-
-    //Projects world
-    this.load.tilemapTiledJSON('ricardosProjectsMap', 'RicardosProjectsWorldJson.json');
-    this.load.tilemapTiledJSON('movingCloudsMap', 'MovingCloudsJson.json')
-
-    //Projects images themselves:
-    //DND
-    this.load.image('dnd-cover', 'professional-files/DND-Game/dnd-cover.jpg');
-    this.load.image('turret-rc-car-2','professional-files/RC-Car/turret-rc-car-2.jpg');
-    this.load.image('concordia-virtual-tour-cover','professional-files/Concordia-Virtual-tour/concordia-virtual-tour-cover.png');
-
-
+      //pROJECTS World
     this.load.spritesheet('clouds-spritesheet', // key to reference in Phaser
       'custom-sprites/clouds-sprites-smaller.png',
       {
@@ -59,10 +40,42 @@ export class Preloader extends Phaser.Scene {
       }
     );
 
+    // 3) player
+    this.load.spritesheet('Snorlax-player',
+      'Snorlax.png',
+      { frameWidth: 84, frameHeight: 102 }
+    );    
+
+    //---------------------- Loading images ----------------------------------------------
+
+    //Images from folders:
+    //-Professional files
+    //-Custom sprites
+
+    // grab the manifest
+    //NB: WHEN USING THE IMAGES THAT ARE LOADED THIS WAY, MAKE SURE TO USE THE KEY I.E. THEIR FILENAME WITHOUT THE EXTENSION
+    this.load.json('imageManifest', 'image-manifest.json');
+
+
+    //---------------------- Handle Load Errors ----------------------------------------------
+    this.load.on('loaderror', (file) => {
+      console.error(`Failed to load: key=${file.key} url=${file.src}`);
+    });
+
+
 
   }
 
   create() {
-    this.scene.start('Game');
+     const manifest = this.cache.json.get('imageManifest');
+      // now manifest is a real array of strings
+      manifest.forEach(path => {
+        const filename = path.split('/').pop();           // "level-1.png"
+        const key      = filename.replace(/\.\w+$/, '');  // "level-1"
+        this.load.image(key, path);
+      });
+
+      this.load.once('complete', () => this.scene.start('Game'));
+      this.load.start();
   }
 }
