@@ -10,6 +10,10 @@ export class RicardosProjects extends Phaser.Scene{
         this.MAPOFFSETX= 650;
         this.MAPOFFSETY= -350;
     }
+    
+    init(data){
+      this.previousScene = data.previousScene;
+    }
 
     create(){
         this.map = this.make.tilemap({ key: 'ricardosProjectsMap' });
@@ -157,7 +161,7 @@ export class RicardosProjects extends Phaser.Scene{
         // compute world‐space x/y exactly as your map layers use it
         const worldX = obj.width/2 + obj.x + this.MAPOFFSETX;
         const worldY = obj.height/2 + obj.y + this.MAPOFFSETY;
-        const zone   = new InteractableRect(this, obj, worldX, worldY);
+        const zone   = new InteractableRect(this, obj, worldX, worldY,this.previousScene);
         this.interactables.add(zone);
       });
 

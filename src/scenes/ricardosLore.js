@@ -5,6 +5,10 @@ export class ricardosLore extends Phaser.Scene {
     this.title = "Ricardo's Lore";
   }
 
+  init(data){
+    this.previousScene = data.previousScene;
+  }
+
   create() {
     // 1) background
     this.background = this.add.image(0, 0, 'brick-background')
@@ -42,14 +46,10 @@ export class ricardosLore extends Phaser.Scene {
         label: 'Projects',
         callback: () => {
           
-          // Pause the Game scene
-          this.scene.pause('Game'); 
-
-          // Stop the RicardosLore scene
-          this.scene.stop('ricardosLore');
-
-          // Start the RicardosProjects scene
-          this.scene.start('RicardosProjects');
+          const currentKey = this.sys.settings.key; // "Game"
+          this.scene.pause('Game');
+          this.scene.stop();  // stops ricardosLore itself
+          this.scene.start('RicardosProjects', { previousScene: currentKey });
           
         }
 

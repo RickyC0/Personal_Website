@@ -1,5 +1,5 @@
 export class InteractableRect extends Phaser.GameObjects.Rectangle {
-  constructor(scene, obj, x, y) {
+  constructor(scene, obj, x, y,previousScene) {
     // compute world‐coords
     x = x == null ? obj.x + obj.width/2 : x;
     y = y == null ? obj.y + obj.height/2 : y;
@@ -43,7 +43,13 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
     this.on('pointerout',   this._checkHoverOut, this);
     this.on('pointerdown',  () => this.interact());
 
+    // subscribe to the scene’s update
     scene.events.on('update', this.update, this);
+
+    // when the scene shuts down, remove our update listener
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      scene.events.off('update', this.update, this);
+    });
   }
 
   _checkHoverIn() {
@@ -142,15 +148,22 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
     if (this.displayedRect) {
       this.displayedRect.destroy();
       this.displayedRect = null;
+    }
+    if (this.displayedImgs) {
+      this.displayedImgs.forEach(img => {
+        if (img) img.destroy();
+      });
+      this.displayedImgs.length = 0;
+    }
 
-      this.displayedRectText.destroy();
-      this.displayedRectText = null;
-
+    if (this.displayedRectBackground) {
       this.displayedRectBackground.destroy();
       this.displayedRectBackground = null;
     }
-    this.displayedImgs.forEach(img => img.destroy());
-    this.displayedImgs.length = 0;
+    if (this.displayedRectText) {
+      this.displayedRectText.destroy();
+      this.displayedRectText = null;
+    }
   }
 
   checkInteraction() {
@@ -167,9 +180,20 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
       return;
     }
     if (this.name === 'ricardosLore') {
-      this.scene.scene.launch('ricardosLore');
+
+      //NB: Hardcoded
+      const currentKey = 'Game';
+      this.scene.scene.launch('ricardosLore',{previousScene: currentKey});
     }
     //TODO: Click on displayed rect
+    if(this.name === 'Exit'){
+
+    // stop this entire scene
+    this.scene.scene.stop(); 
+    // resume the previous scene key that the scene stored
+    // HERE I HARDCODED IT: It will skip ricardosLore
+    this.scene.scene.resume('Game');
+    }
   }
 
   update() {
