@@ -696,6 +696,11 @@
                  "name":"Project 3",
                  "properties":[
                         {
+                         "name":"Info",
+                         "type":"string",
+                         "value":"test"
+                        }, 
+                        {
                          "name":"cover",
                          "type":"file",
                          "value":"professional-files\/Concordia-Virtual-tour\/concordia-virtual-tour-cover.png"
@@ -755,6 +760,11 @@
                  "name":"Project 2",
                  "properties":[
                         {
+                         "name":"Info",
+                         "type":"string",
+                         "value":"test"
+                        }, 
+                        {
                          "name":"cover",
                          "type":"file",
                          "value":"professional-files\/RC-Car\/turret-rc-car-2.jpg"
@@ -796,6 +806,11 @@
                  "id":37,
                  "name":"Project 1",
                  "properties":[
+                        {
+                         "name":"Info",
+                         "type":"string",
+                         "value":"test"
+                        }, 
                         {
                          "name":"cover",
                          "type":"file",

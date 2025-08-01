@@ -381,6 +381,7 @@
  <objectgroup id="9" name="Interactables">
   <object id="32" name="Project 3" type="Project" x="194.727" y="669.091" width="54.4545" height="48.9091">
    <properties>
+    <property name="Info" value="test"/>
     <property name="cover" type="file" value="professional-files/Concordia-Virtual-tour/concordia-virtual-tour-cover.png"/>
     <property name="display-rect" type="bool" value="true"/>
     <property name="img 1" type="file" value="professional-files/Concordia-Virtual-tour/concordia-virtual-tour-cover.png"/>
@@ -396,6 +397,7 @@
   </object>
   <object id="36" name="Project 2" type="Project" x="391.273" y="830.879" width="53.4545" height="48.9091">
    <properties>
+    <property name="Info" value="test"/>
     <property name="cover" type="file" value="professional-files/RC-Car/turret-rc-car-2.jpg"/>
     <property name="display-rect" type="bool" value="true"/>
     <property name="img 1" type="file" value="professional-files/RC-Car/turret-rc-car-2.jpg"/>
@@ -406,6 +408,7 @@
   </object>
   <object id="37" name="Project 1" type="Project" x="196.606" y="960.212" width="49.9545" height="48.9091">
    <properties>
+    <property name="Info" value="test"/>
     <property name="cover" type="file" value="professional-files/DND-Game/dnd-cover.jpg"/>
     <property name="display-rect" type="bool" value="true"/>
     <property name="img 1" type="file" value="professional-files/DND-Game/level-1.png"/>
