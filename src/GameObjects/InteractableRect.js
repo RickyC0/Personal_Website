@@ -45,6 +45,8 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
     this.projectInfoBorder = null;
     this.previousArrow = null;
     this.nextArrow = null;
+    this.currentImage = null;
+    this.currentImageIndex = 0;
 
     // state flags
     globalThis.isProjectOpen = false;
@@ -194,7 +196,9 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
     'projectInfoBorder',
     'projectInfoText',
     'previousArrow',
-    'nextArrow']
+    'nextArrow',
+    'currentImage',
+    'currentImageIndex']
       .forEach(prop => {
         if (this[prop]) {
           this[prop].destroy();
@@ -216,18 +220,17 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
     const screenW = scene.scale.width;
     const screenH = scene.scale.height;
 
-    // 80%×90% modal
+    // 80%×90% modal, centered
     const bgW = screenW * 0.8;
     const bgH = screenH * 0.9;
-    // centered on screen
     const offsetX = (screenW - bgW) / 2;
     const offsetY = (screenH - bgH) / 2;
 
-    // dynamic margins
-    const margin   = Math.min(bgW, bgH) * 0.02;
-    const imagePct = 0.8;  // 80% of height for image
-    const infoPct  = 0.2;  // 20% for info
-    const gap      = bgH * 0.05; // 5% gap
+    // dynamic margins & proportions
+    const margin = Math.min(bgW, bgH) * 0.02;
+    const imgAreaPercentage = 0.8;   // 80% of modal width for image
+    const infoAreaPercentage = 0.2;   // 20% of modal height for info
+    const gap = bgH * 0.05; // 5% gap
 
     // 1) modal background
     this.projectBackground = scene.add.image(offsetX, offsetY, 'brick-background')
@@ -243,7 +246,7 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
       .setDepth(cam.depth + 1)
       .setScrollFactor(0);
 
-    // 3) close button in top‐right
+    // 3) close button top-right
     const closeX = offsetX + bgW - margin;
     const closeY = offsetY + margin;
     this.projectCloseButtonBackground = scene.add.rectangle(closeX, closeY, 0, 0, 0xc88889)
@@ -251,6 +254,7 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
       .setStrokeStyle(2, 0x000000)
       .setDepth(cam.depth + 2)
       .setScrollFactor(0);
+
     this.projectCloseButton = scene.add.text(closeX, closeY, '✕', {
         fontSize: `${Math.round(bgH * 0.04)}px`,
         color:    '#000000'
@@ -261,60 +265,80 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
       .setScrollFactor(0)
       .on('pointerdown', () => this._closeProject());
 
-    // size its background
     this.projectCloseButtonBackground.setSize(
       this.projectCloseButton.width,
       this.projectCloseButton.height * 0.8
     );
 
-    // 4) image area (top 70% of modal minus gap)
-    const imageAreaH = bgH * imagePct - gap;
-    const imageY     = offsetY + gap + imageAreaH / 2;
-    this.projectImages = [];
-    Object.keys(this.tileProps)
-      .filter(k => /^img\s*\d+$/i.test(k))
-      .forEach(propKey => {
-        const fn  = this.tileProps[propKey].split(/[\\/]/).pop();
-        const key = fn.replace(/\.\w+$/, '');
-        const img = scene.add.image(offsetX + bgW/2, imageY, key)
-          .setOrigin(0.5)
-          .setDepth(cam.depth + 4)
-          .setScrollFactor(0)
-          .setDisplaySize(bgW * 0.8, imageAreaH * 0.9);
-        this.projectImages.push(img);
+    // 4) compute image box
+    const imageAreaH = bgH * imgAreaPercentage - gap; // top 80% minus gap
+    const imgX = offsetX + bgW / 2;
+    const imgY = offsetY + gap + imageAreaH / 2;
+    const imgW = bgW * imgAreaPercentage;
+    const imgH = imageAreaH * imgAreaPercentage;
+    const imgInfo    = { imgX, imgY, imgW, imgH };
+
+    // harvest keys
+    const imgProps = Object.keys(this.tileProps)
+      .filter(k => /^img\s*\d+$/i.test(k));
+
+    this.imageKeys = imgProps.map(propKey => {
+      const fn = this.tileProps[propKey].split(/[\\/]/).pop();
+      return fn.replace(/\.\w+$/, '');
+    });
+
+    // ensure index
+    if (this.currentImageIndex == null) {
+      this.currentImageIndex = 0;
+    }
+    // initial draw
+    this._drawImageAt(imgInfo, this.currentImageIndex);
+
+    // 5) arrows aligned to image center
+    const arrowW = bgW * 0.1;
+    const arrowH = bgH * 0.1;
+
+    // compute a 5% offset of the image width
+    const arrowOffset = imgInfo.imgW * 0.05;
+
+    const imageCenterY = imgY;
+    const arrowLeftX  = imgInfo.imgX - (imgInfo.imgW / 2) - arrowOffset;
+    const arrowRightX = imgInfo.imgX + (imgInfo.imgW / 2) + arrowOffset;
+
+    this.previousArrow = scene.add.image(arrowLeftX, imageCenterY, 'left-arrow')
+      .setOrigin(0.5)
+      .setDisplaySize(arrowW, arrowH)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(cam.depth + 5)
+      .setScrollFactor(0)
+      .on('pointerdown', () => this._drawPreviousImage(imgInfo))
+      .on('pointerover', () => {
+        this.previousArrow.setScale(1.2);
+      })
+      .on('pointerout', () => {
+        this.previousArrow.setScale(0.8);
       });
 
-    // 4.5) arrows at 5% and 95% of modal width, vertically aligned to the image
-    const arrowSizeW = bgW * 0.1;
-    const arrowSizeH = bgH * 0.1;
-    const imageCenterY = offsetY + (bgH * imagePct / 2) + gap; // same as imageY
 
-    this.previousArrow = scene.add.image(
-      offsetX + bgW * 0.05,   // 5% in from left
-      imageCenterY,
-      'left-arrow'
-    )
-    .setOrigin(0.5)
-    .setDepth(cam.depth + 5)
-    .setScrollFactor(0)
-    .setDisplaySize(arrowSizeW, arrowSizeH);
+    this.nextArrow = scene.add.image(arrowRightX, imageCenterY, 'right-arrow')
+      .setOrigin(0.5)
+      .setDisplaySize(arrowW, arrowH)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(cam.depth + 5)
+      .setScrollFactor(0)
+      .on('pointerdown', () => this._drawNextImage(imgInfo))
+      .on('pointerover', () => {
+      this.nextArrow.setScale(1.2);
+      })
+      .on('pointerout', () => {
+        this.nextArrow.setScale(0.8);
+      });
 
-    this.nextArrow = scene.add.image(
-      offsetX + bgW * 0.95,   // 5% in from right
-      imageCenterY,
-      'right-arrow'
-    )
-    .setOrigin(0.5)
-    .setDepth(cam.depth + 5)
-    .setScrollFactor(0)
-    .setDisplaySize(arrowSizeW, arrowSizeH);
-
-    // 5) info area (next 20% of modal minus gap)
-    const infoH = bgH * infoPct - gap;
+    // 6) info area at bottom 20%
+    const infoH = bgH * infoAreaPercentage - gap;
     const infoY = offsetY + gap + imageAreaH + infoH/2;
     const infoW = bgW * 0.8;
 
-    // border for info
     this.projectInfoBorder = scene.add.rectangle(
       offsetX + bgW/2, infoY, infoW, infoH, 0, 0
     )
@@ -323,7 +347,6 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
       .setDepth(cam.depth + 2)
       .setScrollFactor(0);
 
-    // text inside
     this.projectInfoText = scene.add.text(
       offsetX + bgW/2, infoY,
       this.tileProps['Info'] || '',
@@ -339,6 +362,41 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
       .setScrollFactor(0);
   }
 
+  _drawImageAt(imgInfo, keyIndex) {
+    const scene   = this.scene;
+    const cam     = scene.cameras.main;
+    const key     = this.imageKeys[keyIndex];
+
+    // clear prior
+    if (this.currentImage) {
+      this.currentImage.destroy();
+    }
+
+    this.currentImage = scene.add.image(
+      imgInfo.imgX,
+      imgInfo.imgY,
+      key
+    )
+    .setOrigin(0.5)
+    .setDepth(cam.depth + 4)
+    .setScrollFactor(0)
+    .setDisplaySize(imgInfo.imgW, imgInfo.imgH);
+  }
+
+
+  _drawNextImage(imgInfo) {
+    if (this.currentImageIndex < this.imageKeys.length - 1) {
+      this.currentImageIndex++;
+      this._drawImageAt(imgInfo, this.currentImageIndex);
+    }
+  }
+
+  _drawPreviousImage(imgInfo) {
+    if (this.currentImageIndex > 0) {
+      this.currentImageIndex--;
+      this._drawImageAt(imgInfo, this.currentImageIndex);
+    }
+  }
 
   checkInteraction() {
     const p = this.scene.player;
@@ -370,7 +428,7 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
       this.scene.scene.resume('Game');
     }
 
-    else if(this.name.startsWith('Project')){
+    else if(this.name.startsWith('Project') && !this.tileProps['text']){
       this._displayProjetInfo();
     }
   }
