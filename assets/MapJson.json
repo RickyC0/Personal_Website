@@ -2135,7 +2135,7 @@
          "name":"Interactables",
          "objects":[
                 {
-                 "height":46.6548578819566,
+                 "height":60.6701040260486,
                  "id":90,
                  "name":"ricardosLore",
                  "properties":[
@@ -2164,12 +2164,12 @@
                          "type":"string",
                          "value":"Here is Ricardo's Lore"
                         }],
-                 "rotation":0.47409913454034,
+                 "rotation":0.474099,
                  "type":"",
                  "visible":true,
-                 "width":47.767390321349,
-                 "x":560.616963389144,
-                 "y":256.257494104724
+                 "width":56.9429994920627,
+                 "x":555.526090909091,
+                 "y":251.802454545455
                 }],
          "opacity":1,
          "type":"objectgroup",

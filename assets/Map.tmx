@@ -1423,7 +1423,7 @@
   </layer>
  </group>
  <objectgroup id="40" name="Interactables">
-  <object id="90" name="ricardosLore" x="560.617" y="256.257" width="47.7674" height="46.6549" rotation="0.474099">
+  <object id="90" name="ricardosLore" x="555.526" y="251.802" width="56.943" height="60.6701" rotation="0.474099">
    <properties>
     <property name="IMAGE-cv" type="file" value="custom-sprites/CV_Sprite.png"/>
     <property name="IMAGE-education" type="file" value="custom-sprites/graduation_hat.png"/>

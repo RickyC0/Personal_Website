@@ -1,13 +1,19 @@
 export class InteractableRect extends Phaser.GameObjects.Rectangle {
+  //array of interactable rects
+  static instances = [];
+
+  // state flags
+  static isProjectOpen = false;
+
   constructor(scene, obj, x, y,previousScene) {
     // compute world‐coords
     x = x == null ? obj.x + obj.width/2 : x;
     y = y == null ? obj.y + obj.height/2 : y;
 
     super(scene, x, y, obj.width, obj.height, 0x000000, 0);
-    this.obj    = obj;
-    this.scene  = scene;
-    this.name   = obj.name || 'InteractableRect';
+    this.obj = obj;
+    this.scene = scene;
+    this.name = obj.name || 'InteractableRect';
 
     scene.add.existing(this);
     scene.physics.add.existing(this, true);
@@ -48,9 +54,6 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
     this.currentImage = null;
     this.currentImageIndex = 0;
 
-    // state flags
-    globalThis.isProjectOpen = false;
-
     //Rectangle properties
     this.HOVER_RECTANGLE_SCALE_FACTOR = 5;
 
@@ -59,17 +62,67 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
     this.on('pointerout',   this._onPointerOut);
     this.on('pointerdown',  () => this.interact());
 
-    // subscribe to the scene’s update
-    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      scene.events.off('update', this.update, this);
-    });
+    // 1) track every instance
+    InteractableRect.instances.push(this);
 
-    scene.events.on('update', this.update, this);
+    this.scene.input.keyboard.on('keydown-ESC',()=> this._closeProject());
+    this.scene.input.keyboard.on('keydown-ENTER', ()=> this.interact());
+
+    //VERY IMPORTANT!
+    //This removes the InteractableRect objects of this scene from the static instances array
+    //Therefore when we reopen this scene anew, it will create new objects for the rectangles, and so we need to remove the old ones here
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      InteractableRect.instances = InteractableRect.instances.filter(
+        inst => inst.scene !== this.scene
+      );
+    });
+    
   }
 
-   _onPointerOver() {
+  _checkClosestRect() {
+    let closest     = null;
+    let minDistance = Infinity;
+
+    // pull the player off the scene
+    const player = this.scene.player;
+    if (!player) {
+      console.warn('No player on scene');
+      return null;
+    }
+
+    const px = player.x;
+    const py = player.y + player.displayHeight/2;
+
+    for (const inst of InteractableRect.instances) {
+      if (!inst) continue;
+
+      // use inst.x/inst.y instead of inst.body.center
+      const zx = inst.x;
+      const zy = inst.y;
+      const d  = Phaser.Math.Distance.Between(px, py, zx, zy);
+
+      if (d < minDistance) {
+        minDistance = d;
+        closest     = inst;
+      }
+    }
+
+    return closest;
+  }
+
+  _warnClosestRect(){
+    const temp = this._checkClosestRect();
+
+    if(this._checkClosestRect()){
+      temp.warnFarInteraction();
+      temp.drawShortestPath();
+    }
+  }
+
+
+  _onPointerOver() {
     // if a project is open, don’t show any hover
-    if (globalThis.isProjectOpen) {
+    if (InteractableRect.isProjectOpen) {
       return;
     }
 
@@ -83,7 +136,7 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
 
   _onPointerOut() {
     // if a project is open, don’t clear or hide anything
-    if (globalThis.isProjectOpen) {
+    if (InteractableRect.isProjectOpen) {
       return;
     }
 
@@ -93,7 +146,7 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
 
   _displayHoverRect() {
     if (this.hoverRect) return; // already shown
-    if(globalThis.isProjectOpen) return;
+    if(InteractableRect.isProjectOpen) return;
 
     // 1) draw the rectangle border
     this.hoverRect = this.scene.add.rectangle(
@@ -204,12 +257,12 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
   }
 
   _closeProject(){
-    globalThis.isProjectOpen = false;
+    InteractableRect.isProjectOpen = false;
     this._clearDisplayRect();
   }
 
   _displayProjetInfo() {
-    globalThis.isProjectOpen = true;
+    InteractableRect.isProjectOpen = true;
 
     const scene   = this.scene;
     const cam     = scene.cameras.main;
@@ -433,9 +486,168 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
            Math.max(this.body.width,this.body.height);
   }
 
+  drawShortestPath() {
+    const currentScene = this.scene;
+    const playerSprite = currentScene.player;
+    const playerX = playerSprite.x;
+    const playerY = playerSprite.y + playerSprite.displayHeight / 2;
+    const targetX = this.body.center.x;
+    const targetY = this.body.center.y;
+
+    // total straight-line distance and angle
+    const totalDistance       = Phaser.Math.Distance.Between(playerX, playerY, targetX, targetY);
+    const angleBetweenPoints  = Phaser.Math.Angle.Between(playerX, playerY, targetX, targetY);
+
+    // prepare a graphics object to draw the dotted line
+    const lineGraphics = currentScene.add.graphics()
+      .setDepth(this.depth + 1)
+      .fillStyle(0xffffff, 1);
+
+    // how far apart each rectangle is, and its size
+    const rectangleSpacing = 16;
+
+    
+    const rectangleWidth = this.scene.scale.width * 0.005;
+    const rectangleHeight = this.scene.scale.height * 0.005;
+
+    // place a small filled rectangle every rectangleSpacing pixels
+    for (let distanceAlongLine = 0; distanceAlongLine <= totalDistance; distanceAlongLine += rectangleSpacing) {
+      const drawX = playerX + Math.cos(angleBetweenPoints) * distanceAlongLine;
+      const drawY = playerY + Math.sin(angleBetweenPoints) * distanceAlongLine;
+
+      // save the current transform state
+      lineGraphics.save();
+
+      // move origin to the center of our little rectangle
+      lineGraphics.translateCanvas(drawX, drawY);
+
+      // rotate the canvas so "up" points toward the object
+      lineGraphics.rotateCanvas(angleBetweenPoints);
+
+      // draw a rectangle centered at (0,0) in this rotated space
+      lineGraphics.fillRect(
+        rectangleWidth / 2,
+        rectangleHeight / 2,
+        rectangleWidth,
+        rectangleHeight
+      );
+
+      // restore back to the unrotated state for the next rectangle
+      lineGraphics.restore();
+    }
+
+    // remove the dotted line after one second
+    currentScene.time.delayedCall(1000, () => {
+      lineGraphics.destroy();
+    });
+  }
+
+  warnFarInteraction() {
+    const scene = this.scene;
+    const player = scene.player;
+    const playerX = player.x;
+    const playerYTop  = player.y - player.displayHeight / 2;
+
+    // clear any old bubble
+    if (this.thoughtBubble) {
+      this.thoughtBubble.destroy();
+      this.thoughtText.destroy();
+      this.thoughtCircles.forEach(c => c.destroy());
+    }
+    this.thoughtCircles = [];
+
+    // dynamic sizing
+    const h = scene.scale.height;
+    const w = scene.scale.width;
+
+    // 1) “thinking” dots (world-space)
+    const radii        = [0.004, 0.007, 0.01].map(f => Math.round(f * h));
+    const verticalOffs = [0.005, 0.015, 0.03].map(f => f * h);
+
+    radii.forEach((radius, i) => {
+      const dot = scene.add.circle(
+        playerX,
+        playerYTop - verticalOffs[i],
+        radius,
+        0xffffff
+      )
+      .setDepth(this.depth + 1)
+      .setStrokeStyle(Math.max(1, Math.round(0.002 * w)), 0x000000)
+      .setScrollFactor(1);  // ← world space!
+      this.thoughtCircles.push(dot);
+    });
+
+    // 2) prepare text (world-space)
+    const fontSizePx = Math.round(0.015 * h);
+    const message = `Too far from: ${this.name}`;
+    const text = scene.add.text(0, 0, message, {
+      fontSize: `${fontSizePx}px`,
+      color:    '#000000',
+      align:    'center',
+      wordWrap: { width: w * 0.25 }
+    })
+    .setDepth(this.depth + 2)
+    .setScrollFactor(1);   // ← world space!
+
+    // 3) bubble dimensions
+    const padding   = Math.round(0.01 * w);
+    const bubbleW   = text.width  + padding * 2;
+    const bubbleH   = text.height + padding * 2;
+    const topDotY   = playerYTop - verticalOffs[verticalOffs.length - 1];
+    const bubbleX   = playerX;
+    const bubbleY   = topDotY - bubbleH / 2 - (0.01 * h);
+    const cornerR   = Math.round(0.1 * Math.min(bubbleW, bubbleH));
+
+    // 4) draw bubble (world-space)
+    const bubbleGraphics = scene.add.graphics()
+      .setDepth(this.depth + 1)
+      .setScrollFactor(1)  // ← world space!
+      .fillStyle(0xffffff, 1);
+    
+    bubbleGraphics.fillRoundedRect(
+      bubbleX - bubbleW/2,
+      bubbleY - bubbleH/2,
+      bubbleW,
+      bubbleH,
+      cornerR
+    );
+    bubbleGraphics.lineStyle(Math.max(1, Math.round(0.002 * w)), 0x000000, 1);
+    bubbleGraphics.strokeRoundedRect(
+      bubbleX - bubbleW/2,
+      bubbleY - bubbleH/2,
+      bubbleW,
+      bubbleH,
+      cornerR
+    );
+
+    // 5) center text in bubble
+    text.setPosition(
+      bubbleX - text.width / 2,
+      bubbleY - text.height / 2
+    );
+
+    // save refs
+    this.thoughtBubble = bubbleGraphics;
+    this.thoughtText   = text;
+
+    // 6) auto‐clear after 1.5s
+    scene.time.delayedCall(1500, () => {
+      bubbleGraphics.destroy();
+      text.destroy();
+      this.thoughtCircles.forEach(c => c.destroy());
+    });
+  }
+
+
+
+
   interact() {
+    if(InteractableRect.isProjectOpen){
+      return;
+    }
+
     if (!this.checkInteraction()) {
-      console.warn('Too far from:', this.name);
+      this._warnClosestRect();
       return;
     }
 
@@ -461,8 +673,6 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
   }
 
   update() {
-    if (Phaser.Input.Keyboard.JustDown(this.scene.interactKey)) {
-      this.interact();
-    }
+  
   }
 }

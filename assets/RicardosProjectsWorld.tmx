@@ -379,7 +379,7 @@
 </data>
  </layer>
  <objectgroup id="9" name="Interactables">
-  <object id="32" name="Project 3" type="Project" x="194.727" y="669.091" width="54.4545" height="48.9091">
+  <object id="32" name="Project 3" type="Project" x="183.727" y="666.091" width="87.4545" height="54.9091">
    <properties>
     <property name="Info" value="test"/>
     <property name="cover" type="file" value="professional-files/Concordia-Virtual-tour/concordia-virtual-tour-cover.png"/>
@@ -388,13 +388,13 @@
     <property name="img 3" type="file" value="professional-files/Concordia-Virtual-tour/concordia-virtual-tour-chatbot.png"/>
    </properties>
   </object>
-  <object id="35" name="Project 4" type="Project" x="412.273" y="528.879" width="49.4545" height="48.9091">
+  <object id="35" name="Project 4" type="Project" x="375.273" y="524.879" width="86.4545" height="52.9091">
    <properties>
     <property name="display-rect" type="bool" value="true"/>
     <property name="text" value="This Website :)"/>
    </properties>
   </object>
-  <object id="36" name="Project 2" type="Project" x="391.273" y="830.879" width="53.4545" height="48.9091">
+  <object id="36" name="Project 2" type="Project" x="369.273" y="826.379" width="75.4545" height="53.4091">
    <properties>
     <property name="Info" value="test"/>
     <property name="cover" type="file" value="professional-files/RC-Car/turret-rc-car-2.jpg"/>
@@ -404,7 +404,7 @@
     <property name="vid 1" type="file" value="professional-files/RC-Car/rc-car-marshmallow-cannon.mp4"/>
    </properties>
   </object>
-  <object id="37" name="Project 1" type="Project" x="196.606" y="960.212" width="49.9545" height="48.9091">
+  <object id="37" name="Project 1" type="Project" x="196.606" y="959.712" width="68.9545" height="49.4091">
    <properties>
     <property name="Info" value="test"/>
     <property name="cover" type="file" value="professional-files/DND-Game/dnd-cover.jpg"/>
@@ -419,7 +419,7 @@
     <property name="img 8" type="file" value="professional-files/DND-Game/character-selection.png"/>
    </properties>
   </object>
-  <object id="38" name="Exit" x="298.273" y="397.045" width="45.4545" height="48.9091">
+  <object id="38" name="Exit" x="286.773" y="391.545" width="65.9545" height="63.4091">
    <properties>
     <property name="display-rect" type="bool" value="false"/>
    </properties>

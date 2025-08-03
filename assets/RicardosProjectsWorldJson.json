@@ -691,7 +691,7 @@
          "name":"Interactables",
          "objects":[
                 {
-                 "height":48.9091,
+                 "height":54.9091,
                  "id":32,
                  "name":"Project 3",
                  "properties":[
@@ -723,12 +723,12 @@
                  "rotation":0,
                  "type":"Project",
                  "visible":true,
-                 "width":54.4545,
-                 "x":194.727,
-                 "y":669.091
+                 "width":87.4545,
+                 "x":183.727,
+                 "y":666.091
                 }, 
                 {
-                 "height":48.9091,
+                 "height":52.9091,
                  "id":35,
                  "name":"Project 4",
                  "properties":[
@@ -745,12 +745,12 @@
                  "rotation":0,
                  "type":"Project",
                  "visible":true,
-                 "width":49.4545,
-                 "x":412.273,
-                 "y":528.879
+                 "width":86.4545,
+                 "x":375.273,
+                 "y":524.879
                 }, 
                 {
-                 "height":48.9091,
+                 "height":53.4091,
                  "id":36,
                  "name":"Project 2",
                  "properties":[
@@ -787,12 +787,12 @@
                  "rotation":0,
                  "type":"Project",
                  "visible":true,
-                 "width":53.4545,
-                 "x":391.273,
-                 "y":830.879
+                 "width":75.4545,
+                 "x":369.273,
+                 "y":826.379
                 }, 
                 {
-                 "height":48.9091,
+                 "height":49.4091,
                  "id":37,
                  "name":"Project 1",
                  "properties":[
@@ -854,12 +854,12 @@
                  "rotation":0,
                  "type":"Project",
                  "visible":true,
-                 "width":49.9545,
+                 "width":68.9545,
                  "x":196.606,
-                 "y":960.212
+                 "y":959.712
                 }, 
                 {
-                 "height":48.9091,
+                 "height":63.4091,
                  "id":38,
                  "name":"Exit",
                  "properties":[
@@ -871,9 +871,9 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":45.4545,
-                 "x":298.273,
-                 "y":397.045
+                 "width":65.9545,
+                 "x":286.773,
+                 "y":391.545
                 }],
          "opacity":1,
          "type":"objectgroup",

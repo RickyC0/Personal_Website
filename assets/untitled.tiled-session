@@ -3,11 +3,11 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "MovingClouds.tmx",
+    "activeFile": "RicardosProjectsWorld.tmx",
     "expandedProjectPaths": [
-        ".",
         "custom-sprites",
-        "tilesets"
+        "tilesets",
+        "."
     ],
     "file.lastUsedOpenFilter": "All Files (*)",
     "fileStates": {
@@ -64,14 +64,14 @@
             "scaleInEditor": 0.5
         },
         "Map.tmx": {
-            "expandedGroupLayers": [
-                28
+            "expandedObjectLayers": [
+                40
             ],
-            "scale": 1,
-            "selectedLayer": 5,
+            "scale": 11,
+            "selectedLayer": 35,
             "viewCenter": {
-                "x": 480.5,
-                "y": 320
+                "x": 584.5454545454545,
+                "y": 294.5
             }
         },
         "Map.tmx#ForBuildings": {
@@ -124,10 +124,10 @@
                 9
             ],
             "scale": 2,
-            "selectedLayer": 0,
+            "selectedLayer": 5,
             "viewCenter": {
-                "x": 288,
-                "y": 640
+                "x": 219,
+                "y": 488.75
             }
         },
         "RicardosProjectsWorld.tmx#Color Palette": {
@@ -224,8 +224,8 @@
     "property.type": "string",
     "recentFiles": [
         "Map.tmx",
-        "RicardosProjectsWorld.tmx",
         "MovingClouds.tmx",
+        "RicardosProjectsWorld.tmx",
         "tilesets/map_tileset.tsx",
         "tilesets/MapJson.json",
         "tilesets/FRLG Outside B.tsx",
