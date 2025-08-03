@@ -54,7 +54,7 @@ export class Preloader extends Phaser.Scene {
 
     // grab the manifest
     //NB: WHEN USING THE IMAGES THAT ARE LOADED THIS WAY, MAKE SURE TO USE THE KEY I.E. THEIR FILENAME WITHOUT THE EXTENSION
-    this.load.json('imageManifest', 'image-manifest.json');
+    this.load.json('mediaManifest', 'media-manifest.json');
 
 
     //---------------------- Handle Load Errors ----------------------------------------------
@@ -67,15 +67,31 @@ export class Preloader extends Phaser.Scene {
   }
 
   create() {
-     const manifest = this.cache.json.get('imageManifest');
-      // now manifest is a real array of strings
-      manifest.forEach(path => {
-        const filename = path.split('/').pop();           // "level-1.png"
-        const key      = filename.replace(/\.\w+$/, '');  // "level-1"
-        this.load.image(key, path);
-      });
+    // re-apply the same base path so your dynamic loads know where to look
+    this.load.setPath('./assets/');
 
-      this.load.once('complete', () => this.scene.start('Game'));
-      this.load.start();
+    const manifest = this.cache.json.get('mediaManifest');
+    if (!Array.isArray(manifest)) {
+      console.error('mediaManifest didn’t load!', manifest);
+      return;
+    }
+
+    manifest.forEach(relPath => {
+      const ext      = relPath.split('.').pop().toLowerCase();
+      const key      = relPath.split('/').pop().replace(/\.\w+$/, '');
+
+      if (['png','jpg','jpeg','svg','gif'].includes(ext)) {
+        this.load.image(key, relPath);
+      } else if (['mp4','webm'].includes(ext)) {
+        this.load.video(key, relPath);
+
+      } else {
+        console.warn('Skipping unknown type', relPath);
+      }
+    });
+
+    this.load.once('complete', () => this.scene.start('Game'));
+    this.load.start();
   }
+
 }

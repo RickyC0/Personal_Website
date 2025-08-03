@@ -173,38 +173,34 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
 
   //-------------- Projects Pages ---------------------------------------
   _clearDisplayRect() {
-    // 1) Hover graphics
-    ['hoverRect', 'hoverImage', 'hoverRectBackground', 'hoverRectText']
-      .forEach(prop => {
-        if (this[prop]) {
-          this[prop].destroy();
-          this[prop] = null;
+    [
+      'hoverRect',
+      'hoverImage',
+      'hoverRectBackground',
+      'hoverRectText',
+      'projectBorder',
+      'projectBackground',
+      'projectCloseButton',
+      'projectCloseButtonBackground',
+      'projectInfoBorder',
+      'projectInfoText',
+      'previousArrow',
+      'nextArrow',
+      'currentImage',
+      'projectImages'
+    ].forEach(prop => {
+      const obj = this[prop];
+      if (obj != null) {
+        if (Array.isArray(obj)) {
+          obj.forEach(o => o.destroy && o.destroy());
+        } else if (typeof obj.destroy === 'function') {
+          obj.destroy();
         }
-      });
+      }
+      this[prop] = null;
+    });
 
-    // 2) Project images
-    if (this.projectImages) {
-      this.projectImages.forEach(img => img.destroy());
-    }
-    this.projectImages = [];
-
-    // 3) Project graphics
-    ['projectBorder',
-    'projectBackground',
-    'projectCloseButton',
-    'projectCloseButtonBackground',
-    'projectInfoBorder',
-    'projectInfoText',
-    'previousArrow',
-    'nextArrow',
-    'currentImage',
-    'currentImageIndex']
-      .forEach(prop => {
-        if (this[prop]) {
-          this[prop].destroy();
-          this[prop] = null;
-        }
-      });
+    this.currentImageIndex = 0;
   }
 
   _closeProject(){
@@ -279,10 +275,11 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
     const imgInfo    = { imgX, imgY, imgW, imgH };
 
     // harvest keys
-    const imgProps = Object.keys(this.tileProps)
-      .filter(k => /^img\s*\d+$/i.test(k));
+    this.mediaProps = Object.entries(this.tileProps)
+    .filter(([propKey, value]) => /\.(png|jpe?g|svg|gif|mp4)$/i.test(value))
+    .map(([propKey]) => propKey);
 
-    this.imageKeys = imgProps.map(propKey => {
+    this.imageKeys = this.mediaProps.map(propKey => {
       const fn = this.tileProps[propKey].split(/[\\/]/).pop();
       return fn.replace(/\.\w+$/, '');
     });
@@ -292,14 +289,14 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
       this.currentImageIndex = 0;
     }
     // initial draw
-    this._drawImageAt(imgInfo, this.currentImageIndex);
+    this._drawMediaAt(imgInfo, this.currentImageIndex);
 
     // 5) arrows aligned to image center
     const arrowW = bgW * 0.1;
     const arrowH = bgH * 0.1;
 
     // compute a 5% offset of the image width
-    const arrowOffset = imgInfo.imgW * 0.05;
+    const arrowOffset = imgInfo.imgW * 0.065;
 
     const imageCenterY = imgY;
     const arrowLeftX  = imgInfo.imgX - (imgInfo.imgW / 2) - arrowOffset;
@@ -362,39 +359,69 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
       .setScrollFactor(0);
   }
 
-  _drawImageAt(imgInfo, keyIndex) {
-    const scene   = this.scene;
-    const cam     = scene.cameras.main;
-    const key     = this.imageKeys[keyIndex];
+  _drawMediaAt(imgInfo, keyIndex) {
+    const scene = this.scene;
+    const cam   = scene.cameras.main;
+    const propKey = this.mediaProps[keyIndex];
+    const fullPath = this.tileProps[propKey];        // e.g. "myMovie.mov"
+    const filename = fullPath.split(/[\\/]/).pop();  // "myMovie.mov"
+    const key = filename.replace(/\.\w+$/, '');
+    const url = 'assets/' + fullPath;  
 
-    // clear prior
-    if (this.currentImage) {
-      this.currentImage.destroy();
+    // destroy old
+    if (this.currentImage) this.currentImage.destroy();
+
+     if (/\.(mp4)$/i.test(fullPath)) {
+      console.log('Playing video:', url);
+
+      //This is necessary because of the 'realWidth' = null bug.
+      //if i don't use a placeholder, phaser will not display the video for some reason
+      const placeHolder = this.scene.add.image(imgInfo.imgX, imgInfo.imgY, 'brick-background')
+      .setVisible(false);
+
+      // 1) Create WITHOUT a key, at (x,y)
+      const video = scene.add.video(
+        imgInfo.imgX,
+        imgInfo.imgY,
+        key
+      )
+      .setOrigin(0.5)
+      .setDepth(cam.depth + 4)
+      .setScrollFactor(0)
+      .setTexture(placeHolder)
+      .setDisplaySize(imgInfo.imgW * 0.016 , imgInfo.imgH * 0.03);
+
+      video.play(true);
+
+      this.currentImage = video;
     }
 
-    this.currentImage = scene.add.image(
-      imgInfo.imgX,
-      imgInfo.imgY,
-      key
-    )
-    .setOrigin(0.5)
-    .setDepth(cam.depth + 4)
-    .setScrollFactor(0)
-    .setDisplaySize(imgInfo.imgW, imgInfo.imgH);
+    else {
+      // image path…
+      this.currentImage = scene.add.image(
+        imgInfo.imgX,
+        imgInfo.imgY,
+        key
+      )
+      .setOrigin(0.5)
+      .setDepth(cam.depth + 4)
+      .setScrollFactor(0)
+      .setDisplaySize(imgInfo.imgW, imgInfo.imgH);
+    }
   }
 
 
   _drawNextImage(imgInfo) {
     if (this.currentImageIndex < this.imageKeys.length - 1) {
       this.currentImageIndex++;
-      this._drawImageAt(imgInfo, this.currentImageIndex);
+      this._drawMediaAt(imgInfo, this.currentImageIndex);
     }
   }
 
   _drawPreviousImage(imgInfo) {
     if (this.currentImageIndex > 0) {
       this.currentImageIndex--;
-      this._drawImageAt(imgInfo, this.currentImageIndex);
+      this._drawMediaAt(imgInfo, this.currentImageIndex);
     }
   }
 

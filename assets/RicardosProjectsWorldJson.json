@@ -711,14 +711,9 @@
                          "value":true
                         }, 
                         {
-                         "name":"img 1",
-                         "type":"file",
-                         "value":"professional-files\/Concordia-Virtual-tour\/concordia-virtual-tour-cover.png"
-                        }, 
-                        {
                          "name":"img 2",
                          "type":"file",
-                         "value":"professional-files\/Concordia-Virtual-tour\/concordia-virtual-tour-demo.gif"
+                         "value":"professional-files\/Concordia-Virtual-tour\/concordia-virtual-tour-demo.mp4"
                         }, 
                         {
                          "name":"img 3",
@@ -777,22 +772,17 @@
                         {
                          "name":"img 1",
                          "type":"file",
-                         "value":"professional-files\/RC-Car\/turret-rc-car-2.jpg"
-                        }, 
-                        {
-                         "name":"img 2",
-                         "type":"file",
                          "value":"professional-files\/RC-Car\/turret-rc-car-1.jpg"
                         }, 
                         {
                          "name":"img 3",
                          "type":"file",
-                         "value":"professional-files\/RC-Car\/rc-car-remote.webp"
+                         "value":"professional-files\/RC-Car\/rc-car-remote.png"
                         }, 
                         {
                          "name":"vid 1",
                          "type":"file",
-                         "value":"professional-files\/RC-Car\/rc-car-marshmallow-cannon.mov"
+                         "value":"professional-files\/RC-Car\/rc-car-marshmallow-cannon.mp4"
                         }],
                  "rotation":0,
                  "type":"Project",

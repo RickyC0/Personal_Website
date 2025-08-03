@@ -384,8 +384,7 @@
     <property name="Info" value="test"/>
     <property name="cover" type="file" value="professional-files/Concordia-Virtual-tour/concordia-virtual-tour-cover.png"/>
     <property name="display-rect" type="bool" value="true"/>
-    <property name="img 1" type="file" value="professional-files/Concordia-Virtual-tour/concordia-virtual-tour-cover.png"/>
-    <property name="img 2" type="file" value="professional-files/Concordia-Virtual-tour/concordia-virtual-tour-demo.gif"/>
+    <property name="img 2" type="file" value="professional-files/Concordia-Virtual-tour/concordia-virtual-tour-demo.mp4"/>
     <property name="img 3" type="file" value="professional-files/Concordia-Virtual-tour/concordia-virtual-tour-chatbot.png"/>
    </properties>
   </object>
@@ -400,10 +399,9 @@
     <property name="Info" value="test"/>
     <property name="cover" type="file" value="professional-files/RC-Car/turret-rc-car-2.jpg"/>
     <property name="display-rect" type="bool" value="true"/>
-    <property name="img 1" type="file" value="professional-files/RC-Car/turret-rc-car-2.jpg"/>
-    <property name="img 2" type="file" value="professional-files/RC-Car/turret-rc-car-1.jpg"/>
-    <property name="img 3" type="file" value="professional-files/RC-Car/rc-car-remote.webp"/>
-    <property name="vid 1" type="file" value="professional-files/RC-Car/rc-car-marshmallow-cannon.mov"/>
+    <property name="img 1" type="file" value="professional-files/RC-Car/turret-rc-car-1.jpg"/>
+    <property name="img 3" type="file" value="professional-files/RC-Car/rc-car-remote.png"/>
+    <property name="vid 1" type="file" value="professional-files/RC-Car/rc-car-marshmallow-cannon.mp4"/>
    </properties>
   </object>
   <object id="37" name="Project 1" type="Project" x="196.606" y="960.212" width="49.9545" height="48.9091">

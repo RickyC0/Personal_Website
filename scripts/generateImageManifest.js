@@ -12,7 +12,7 @@ const FOLDERS = [
 ];
 
 // 3) Where to write the manifest
-const OUT_FILE = path.join(ASSETS_DIR, 'image-manifest.json');
+const OUT_FILE = path.join(ASSETS_DIR, 'media-manifest.json');
 
 // 4) Collect all image paths here
 const manifest = [];
@@ -34,7 +34,7 @@ function walk(dir) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       walk(fullPath);
-    } else if (/\.(png|jpe?g|svg|gif)$/i.test(entry.name)) {
+    } else if (/\.(png|jpe?g|svg|gif|mp4)$/i.test(entry.name)) {
       const relPath = path.relative(ASSETS_DIR, fullPath).replace(/\\/g, '/');
       manifest.push(relPath);
     }
@@ -47,7 +47,7 @@ FOLDERS.forEach(walk);
 // 6) Write out the JSON manifest
 try {
   fs.writeFileSync(OUT_FILE, JSON.stringify(manifest, null, 2), 'utf8');
-  console.log(`✅  image-manifest.json generated with ${manifest.length} entries.`);
+  console.log(`✅  media-manifest.json generated with ${manifest.length} entries.`);
 } catch (err) {
   console.error(`❌  Failed to write manifest to ${OUT_FILE}`, err);
   process.exit(1);
