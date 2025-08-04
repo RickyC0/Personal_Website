@@ -16,69 +16,90 @@ export class RicardosProjects extends Phaser.Scene{
     }
 
     create(){
-        this.map = this.make.tilemap({ key: 'ricardosProjectsMap' });
-        this.movingCloudsBackground = this.make.tilemap({ key: 'movingCloudsMap' });
+      //Transition that opens the scene
+      const transition = this.add.image(
+        this.scale.width/2,
+        this.scale.height/2,
+        'transition-cloud'
+      )
+        .setOrigin(0.5)
+        .setScrollFactor(0)
+        .setDisplaySize(this.scale.width * 2.5, this.scale.height * 2.5)
+        .setDepth(1000)// on top of everything
+        .setAlpha(1);// start fully opaque
 
-        const cloudsTileset = this.map.addTilesetImage('clouds-sprites-smaller', 'clouds-spritesheet');
-        const colorsTileset = this.map.addTilesetImage('Color Palette', 'colors-spritesheet');
-        const mainTileset = this.map.addTilesetImage('MainTilesetPNG', 'tileset')
+      // 2) fade it out over 3 seconds, then destroy
+      this.tweens.add({
+        targets: transition,
+        alpha: { from: 1, to: 0 },
+        duration: 3000,
+        ease: 'Quad.easeOut',
+        onComplete: () => transition.destroy()
+      });
 
-        // Display the layers of the background map
-        this.backgroundLayerMap = {};
-        this.movingCloudsBackground.layers.forEach(layerData => {
-            const layer = this.movingCloudsBackground.createLayer(
-                layerData.name,
-                [cloudsTileset, colorsTileset], //use both tilesets here
-                0, //X-offset 
-                0  //Y-offset
-            );
-          // detach from camera movement
-          layer.setScrollFactor(0);
+      this.map = this.make.tilemap({ key: 'ricardosProjectsMap' });
+      this.movingCloudsBackground = this.make.tilemap({ key: 'movingCloudsMap' });
 
-          this.backgroundLayerMap[layerData.name] = layer;
-        });
-        // -----------------------------------------------------
+      const cloudsTileset = this.map.addTilesetImage('clouds-sprites-smaller', 'clouds-spritesheet');
+      const colorsTileset = this.map.addTilesetImage('Color Palette', 'colors-spritesheet');
+      const mainTileset = this.map.addTilesetImage('MainTilesetPNG', 'tileset')
 
-        //CENTERING THE MAP
-        // --------------------------------------------------------
-        //TODO
-        
+      // Display the layers of the background map
+      this.backgroundLayerMap = {};
+      this.movingCloudsBackground.layers.forEach(layerData => {
+          const layer = this.movingCloudsBackground.createLayer(
+              layerData.name,
+              [cloudsTileset, colorsTileset], //use both tilesets here
+              0, //X-offset 
+              0  //Y-offset
+          );
+        // detach from camera movement
+        layer.setScrollFactor(0);
 
-        //----------------------------------------------------------
+        this.backgroundLayerMap[layerData.name] = layer;
+      });
+      // -----------------------------------------------------
 
-        // Display the layers of the main clouds map
-        this.cloudsLayerMap = {};
-        this.map.layers.forEach(layerData => {
-            const layer = this.map.createLayer(
-                layerData.name,
-                [cloudsTileset, colorsTileset, mainTileset], // use both tilesets here
-                this.MAPOFFSETX, //X-offset 
-                this.MAPOFFSETY  //Y-offset
-            );
-
-            this.cloudsLayerMap[layerData.name] = layer;
-        });
-
-        
+      //CENTERING THE MAP
+      // --------------------------------------------------------
+      //TODO
       
 
-        //Offset of the background layer TODO VERIFY
-        this.cloudOffsetX = 0;
+      //----------------------------------------------------------
+
+      // Display the layers of the main clouds map
+      this.cloudsLayerMap = {};
+      this.map.layers.forEach(layerData => {
+          const layer = this.map.createLayer(
+              layerData.name,
+              [cloudsTileset, colorsTileset, mainTileset], // use both tilesets here
+              this.MAPOFFSETX, //X-offset 
+              this.MAPOFFSETY  //Y-offset
+          );
+
+          this.cloudsLayerMap[layerData.name] = layer;
+      });
+
+      
+    
+
+      //Offset of the background layer TODO VERIFY
+      this.cloudOffsetX = 0;
 
 
-        //TODO: SOME RESIZING FUNCTION THAT SCALES BOTH THE BACKGROUND AND THE MAP, BUT SEPARATLY, SINCE THEY HAVE DIFFERENT SIZES
-        this.applyResize(this, this.map);
-        this.applyResize(this, this.movingCloudsBackground);
+      //TODO: SOME RESIZING FUNCTION THAT SCALES BOTH THE BACKGROUND AND THE MAP, BUT SEPARATLY, SINCE THEY HAVE DIFFERENT SIZES
+      this.applyResize(this, this.map);
+      this.applyResize(this, this.movingCloudsBackground);
 
-        this.resizeHandler = () => {
-            this.applyResize(this, this.map);
-            this.applyResize(this, this.movingCloudsBackground);
-        }
-        this.scale.on('resize', this.resizeHandler);
+      this.resizeHandler = () => {
+          this.applyResize(this, this.map);
+          this.applyResize(this, this.movingCloudsBackground);
+      }
+      this.scale.on('resize', this.resizeHandler);
 
-        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-            this.scale.off('resize', this.resizeHandler);
-        });
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+          this.scale.off('resize', this.resizeHandler);
+      });
 
       //Camera Movements lIMIT
       this.cameras.main.setBounds(
