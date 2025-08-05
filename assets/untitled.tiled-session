@@ -70,8 +70,8 @@
             "scale": 11,
             "selectedLayer": 35,
             "viewCenter": {
-                "x": 584.5454545454545,
-                "y": 294.5
+                "x": 480.04545454545456,
+                "y": 320
             }
         },
         "Map.tmx#ForBuildings": {
@@ -107,8 +107,8 @@
             "scale": 0.33,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 1633.3333333333335,
-                "y": 637.8787878787878
+                "x": 1634.8484848484848,
+                "y": 639.3939393939394
             }
         },
         "MovingClouds.tmx#Color Palette": {
@@ -126,8 +126,8 @@
             "scale": 2,
             "selectedLayer": 5,
             "viewCenter": {
-                "x": 219,
-                "y": 488.75
+                "x": 288,
+                "y": 640
             }
         },
         "RicardosProjectsWorld.tmx#Color Palette": {
