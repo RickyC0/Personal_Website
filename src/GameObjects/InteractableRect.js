@@ -14,22 +14,13 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
     this.obj = obj;
     this.scene = scene;
     this.name = obj.name || 'InteractableRect';
+    this.previousScene=previousScene;
 
     scene.add.existing(this);
     scene.physics.add.existing(this, true);
     this.setInteractive({ useHandCursor: true });
 
-    // hover highlight
-    const PADDING = 8;
-    this.hoverHighlight = scene.add.rectangle(
-      x, y,
-      obj.width  + PADDING*2,
-      obj.height + PADDING*2,
-      0xffff00, 0.3
-    )
-    .setVisible(false)
-    .setDepth(this.depth+1)
-    .setScrollFactor(1);
+    this._drawHoverArea();
 
     // collect Tiled properties
     this.tileProps    = {};
@@ -77,6 +68,30 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
       );
     });
     
+  }
+
+  _drawHoverArea(){
+    // hover highlight
+    const PADDING = 8;
+    this.hoverHighlight = this.scene.add.rectangle(
+      this.x, this.y,
+      this.obj.width  + PADDING*2,
+      this.obj.height + PADDING*2,
+      0xffff00, 0.3
+    )
+    .setVisible(false)
+    .setDepth(this.depth+1)
+    .setScrollFactor(1);
+  }
+
+  static updateCoordinates(obj,x,y){
+    obj.x=x;
+    obj.y=y;
+
+    obj.hoverHighlight=null;
+
+    obj._drawHoverArea();
+
   }
 
   _checkClosestRect() {

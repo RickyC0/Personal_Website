@@ -209,10 +209,13 @@ export class RicardosProjects extends Phaser.Scene{
       // 5) reposition & reset interactable zones
       if (this.interactableZones) {
         this.interactableZones.forEach(zone => {
+          const newX = zone.origTileX + this.worldOriginX_map;
+          const newY = zone.origTileY + this.worldOriginY_map;
           zone.setPosition(
-            zone.origTileX + this.worldOriginX_map,
-            zone.origTileY + this.worldOriginY_map
+            newX,
+            newY
           );
+          InteractableRect.updateCoordinates(zone,newX,newY);
           zone.body.reset(zone.x, zone.y);
         });
       }
