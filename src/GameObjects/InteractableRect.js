@@ -51,7 +51,7 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
     // pointer events
     this.on('pointerover',  this._onPointerOver);
     this.on('pointerout',   this._onPointerOut);
-    this.on('pointerdown',  () => this.interact());
+    this.on('pointerdown',  () => this.interact(true));
 
     // 1) track every instance
     InteractableRect.instances.push(this);
@@ -509,51 +509,49 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
     const targetX = this.body.center.x;
     const targetY = this.body.center.y;
 
-    // total straight-line distance and angle
-    const totalDistance       = Phaser.Math.Distance.Between(playerX, playerY, targetX, targetY);
-    const angleBetweenPoints  = Phaser.Math.Angle.Between(playerX, playerY, targetX, targetY);
+    // Compute distance and angle
+    const totalDistance      = Phaser.Math.Distance.Between(playerX, playerY, targetX, targetY);
+    const angleBetweenPoints = Phaser.Math.Angle.Between(playerX, playerY, targetX, targetY);
 
-    // prepare a graphics object to draw the dotted line
-    const lineGraphics = currentScene.add.graphics()
+    // 1) If there's an existing path graphic, destroy it
+    if (this.shortestPath) {
+      this.shortestPath.destroy();
+      this.shortestPath = null;
+    }
+
+    // 2) Create a new Graphics object and store it
+    this.shortestPath = currentScene.add.graphics()
       .setDepth(this.depth + 1)
       .fillStyle(0xffffff, 1);
 
-    // how far apart each rectangle is, and its size
+    // 3) Dimensions for the little rectangles
     const rectangleSpacing = 16;
+    const rectangleWidth   = currentScene.scale.width  * 0.005;
+    const rectangleHeight  = currentScene.scale.height * 0.005;
 
-    
-    const rectangleWidth = this.scene.scale.width * 0.005;
-    const rectangleHeight = this.scene.scale.height * 0.005;
+    // 4) Draw the dotted line as a series of small rotated rectangles
+    for (let d = 0; d <= totalDistance; d += rectangleSpacing) {
+      const drawX = playerX + Math.cos(angleBetweenPoints) * d;
+      const drawY = playerY + Math.sin(angleBetweenPoints) * d;
 
-    // place a small filled rectangle every rectangleSpacing pixels
-    for (let distanceAlongLine = 0; distanceAlongLine <= totalDistance; distanceAlongLine += rectangleSpacing) {
-      const drawX = playerX + Math.cos(angleBetweenPoints) * distanceAlongLine;
-      const drawY = playerY + Math.sin(angleBetweenPoints) * distanceAlongLine;
-
-      // save the current transform state
-      lineGraphics.save();
-
-      // move origin to the center of our little rectangle
-      lineGraphics.translateCanvas(drawX, drawY);
-
-      // rotate the canvas so "up" points toward the object
-      lineGraphics.rotateCanvas(angleBetweenPoints);
-
-      // draw a rectangle centered at (0,0) in this rotated space
-      lineGraphics.fillRect(
-        rectangleWidth / 2,
-        rectangleHeight / 2,
+      this.shortestPath.save();
+      this.shortestPath.translateCanvas(drawX, drawY);
+      this.shortestPath.rotateCanvas(angleBetweenPoints);
+      this.shortestPath.fillRect(
+        -rectangleWidth  / 2,
+        -rectangleHeight / 2,
         rectangleWidth,
         rectangleHeight
       );
-
-      // restore back to the unrotated state for the next rectangle
-      lineGraphics.restore();
+      this.shortestPath.restore();
     }
 
-    // remove the dotted line after one second
+    // 5) Automatically clear it after 1s
     currentScene.time.delayedCall(1000, () => {
-      lineGraphics.destroy();
+      if (this.shortestPath) {
+        this.shortestPath.destroy();
+        this.shortestPath = null;
+      }
     });
   }
 
@@ -561,26 +559,28 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
     const scene = this.scene;
     const player = scene.player;
     const playerX = player.x;
-    const playerYTop  = player.y - player.displayHeight / 2;
+    const playerYTop = player.y - player.displayHeight / 2;
 
-    // clear any old bubble
+    // 1) clear any existing bubble/text/circles
     if (this.thoughtBubble) {
       this.thoughtBubble.destroy();
       this.thoughtText.destroy();
       this.thoughtCircles.forEach(c => c.destroy());
     }
+    this.thoughtBubble = null;
+    this.thoughtText   = null;
     this.thoughtCircles = [];
 
     // dynamic sizing
     const h = scene.scale.height;
     const w = scene.scale.width;
 
-    // 1) “thinking” dots (world-space)
+    // 2) “thinking” dots
     const radii        = [0.004, 0.007, 0.01].map(f => Math.round(f * h));
     const verticalOffs = [0.005, 0.015, 0.03].map(f => f * h);
 
-    radii.forEach((radius, i) => {
-      const dot = scene.add.circle(
+    this.thoughtCircles = radii.map((radius, i) => {
+      return scene.add.circle(
         playerX,
         playerYTop - verticalOffs[i],
         radius,
@@ -588,13 +588,12 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
       )
       .setDepth(this.depth + 1)
       .setStrokeStyle(Math.max(1, Math.round(0.002 * w)), 0x000000)
-      .setScrollFactor(1);  // ← world space!
-      this.thoughtCircles.push(dot);
+      .setScrollFactor(1);
     });
 
-    // 2) prepare text (world-space)
+    // 3) prepare text
     const fontSizePx = Math.round(0.015 * h);
-    const message = `Too far from: ${this.name}`;
+    const message    = `Too far from: ${this.name}`;
     const text = scene.add.text(0, 0, message, {
       fontSize: `${fontSizePx}px`,
       color:    '#000000',
@@ -602,23 +601,22 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
       wordWrap: { width: w * 0.25 }
     })
     .setDepth(this.depth + 2)
-    .setScrollFactor(1);   // ← world space!
+    .setScrollFactor(1);
 
-    // 3) bubble dimensions
-    const padding   = Math.round(0.01 * w);
-    const bubbleW   = text.width  + padding * 2;
-    const bubbleH   = text.height + padding * 2;
-    const topDotY   = playerYTop - verticalOffs[verticalOffs.length - 1];
-    const bubbleX   = playerX;
-    const bubbleY   = topDotY - bubbleH / 2 - (0.01 * h);
-    const cornerR   = Math.round(0.1 * Math.min(bubbleW, bubbleH));
+    // 4) compute bubble dimensions and draw it
+    const padding = Math.round(0.01 * w);
+    const bubbleW = text.width  + padding * 2;
+    const bubbleH = text.height + padding * 2;
+    const topDotY = playerYTop - verticalOffs[verticalOffs.length - 1];
+    const bubbleX = playerX;
+    const bubbleY = topDotY - bubbleH / 2 - (0.01 * h);
+    const cornerR = Math.round(0.1 * Math.min(bubbleW, bubbleH));
 
-    // 4) draw bubble (world-space)
     const bubbleGraphics = scene.add.graphics()
       .setDepth(this.depth + 1)
-      .setScrollFactor(1)  // ← world space!
+      .setScrollFactor(1)
       .fillStyle(0xffffff, 1);
-    
+
     bubbleGraphics.fillRoundedRect(
       bubbleX - bubbleW/2,
       bubbleY - bubbleH/2,
@@ -635,35 +633,49 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
       cornerR
     );
 
-    // 5) center text in bubble
+    // position the text
     text.setPosition(
       bubbleX - text.width / 2,
       bubbleY - text.height / 2
     );
 
-    // save refs
+    // 5) save refs
     this.thoughtBubble = bubbleGraphics;
     this.thoughtText   = text;
 
     // 6) auto‐clear after 1.5s
     scene.time.delayedCall(1500, () => {
-      bubbleGraphics.destroy();
-      text.destroy();
-      this.thoughtCircles.forEach(c => c.destroy());
+      if (this.thoughtBubble) {
+        this.thoughtBubble.destroy();
+        this.thoughtText.destroy();
+        this.thoughtCircles.forEach(c => c.destroy());
+        this.thoughtBubble = null;
+        this.thoughtText   = null;
+        this.thoughtCircles = [];
+      }
     });
   }
 
 
 
 
-  interact() {
+  interact(click=false) {
     if(InteractableRect.isProjectOpen){
       return;
     }
 
     if (!this.checkInteraction()) {
-      this._warnClosestRect();
-      return;
+      if(click){
+        this.warnFarInteraction();
+        this.drawShortestPath();
+        return;
+      }
+      else{
+        this._warnClosestRect();
+        return;
+      }
+      
+      
     }
 
     //From the 'Game' scene, open the 'ricardosLore' scene
