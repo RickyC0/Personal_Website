@@ -2,3 +2,5 @@
 .lsp/.cache/
 
 .clj-kondo/
+
+package-lock.json

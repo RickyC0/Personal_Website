@@ -5,13 +5,13 @@
   "main": "src/Main.js",
   "scripts": {
     "gen:manifest": "node scripts/generateImageManifest.js",
-    "start":       "npm run gen:manifest && serve ."
+    "start": "npm run gen:manifest && serve ."
   },
   "dependencies": {
     "phaser": "^3.60.0"
   },
   "devDependencies": {
-    "serve": "^14.2.0"
+    "serve": "^14.2.4"
   },
   "author": "Ricardo RAJI CHAHINE",
   "license": "MIT"

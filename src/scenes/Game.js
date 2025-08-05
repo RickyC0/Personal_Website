@@ -9,11 +9,19 @@ export class Game extends Phaser.Scene {
     super({ key: 'Game' });
   }
 
-    create(){
-      //Used to resize the this.map according to the window size, onload and dynamically
-      const applyResponsiveZoom = (scene, map) => {
-        const gameSize = scene.scale.gameSize;
-        const zoomX = gameSize.width / map.widthInPixels;
+  preload() { 
+    this.load.scenePlugin({
+        key: 'rexuiplugin',
+        url: 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexuiplugin.min.js',
+        sceneKey: 'rexUI'
+    });      
+  }
+
+  create(){
+    //Used to resize the this.map according to the window size, onload and dynamically
+    const applyResponsiveZoom = (scene, map) => {
+      const gameSize = scene.scale.gameSize;
+      const zoomX = gameSize.width / map.widthInPixels;
         const zoomY = gameSize.height / map.heightInPixels;
         const zoom = Math.min(zoomX, zoomY);
         scene.cameras.main.setZoom(zoom);
