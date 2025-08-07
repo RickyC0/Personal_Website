@@ -698,7 +698,7 @@
                         {
                          "name":"Info",
                          "type":"string",
-                         "value":"test"
+                         "value":"Concordia Virtual Tour++ transforms the existing static 360\u00b0 campus view into a fully interactive WebGL app powered by 3D Gaussian Splatting, letting users freely navigate and explore Concordia\u2019s grounds. An integrated AI chatbot (via a Hugging Face model) answers questions about the university or your current scene.\n\n3D Gaussian Splatting Pipeline: Capture images \u2192 COLMAP reconstruction \u2192 train Gaussians \u2192 load into a WebGL viewer with navigation & collision detection.\n\nAI Chatbot: Swap in any sub-10 MB Hugging Face model via its URL and set your API key.\n\nOrigins & Thanks:\nBuilt in 24 hrs for ConUHacks IX, leveraging Antimatter15\u2019s WebGL Gaussian Splat viewer and the foundational research on real-time Gaussian Splatting."
                         }, 
                         {
                          "name":"cover",
@@ -757,7 +757,7 @@
                         {
                          "name":"Info",
                          "type":"string",
-                         "value":"test"
+                         "value":"A summer\u2010long robotics showcase blending real\u2010time AI vision, embedded control, wireless comms and custom hardware:\n\nAI\u2010Powered Auto\u2010Aiming Cannon: Python + OpenCV\/Mediapipe + YOLOv8 on Hugging Face for live target detection and PID-tuned motor actuation.\n\nFPV Head-Tracked Turret & Tank Steering: I\u00b2C gyros feeding C++\/Arduino code for smooth camera control and non-linear drive algorithms.\n\nCustom Radio & Remote: NRF24 SPI packets in C++ for low-latency RC, paired with a 3D-printed, integrated antenna and power-managed handheld unit.\n\nMarshmallow Launcher & Power Electronics: 3D-printed magazine cannon (4\u20135 m range) plus a ground-up buck converter PCB with RVP\/OVP and adjustable output.\n\nCore skills span Python, C++, PCB design, 3D modeling\/printing, AI vision stacks, and real-time embedded systems."
                         }, 
                         {
                          "name":"cover",
@@ -783,6 +783,11 @@
                          "name":"vid 1",
                          "type":"file",
                          "value":"professional-files\/RC-Car\/rc-car-marshmallow-cannon.mp4"
+                        }, 
+                        {
+                         "name":"vid 2",
+                         "type":"file",
+                         "value":"professional-files\/RC-Car\/rc-car-trailer.mp4"
                         }],
                  "rotation":0,
                  "type":"Project",
@@ -799,7 +804,7 @@
                         {
                          "name":"Info",
                          "type":"string",
-                         "value":"test"
+                         "value":"DND-Game is a CMake-built, Dungeons & Dragons-style RPG featuring:\n\nDefault Campaign: Three progressively tougher levels to explore and conquer.\n\nMap Editor: Design and save your own battlegrounds (map loader coming soon).\n\nCharacter Creator: Craft and customize your hero before adventuring.\n\nOptions & Audio: Tweak gameplay and sound settings via the main menu."
                         }, 
                         {
                          "name":"cover",

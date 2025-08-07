@@ -260,10 +260,13 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
       'projectCloseButtonBackground',
       'projectInfoBorder',
       'projectInfoText',
+      'projectInfoTextMask',
       'previousArrow',
       'nextArrow',
       'currentImage',
-      'projectImages'
+      'projectImages',
+      'projectInfoScrollTrack',
+      'projectInfoScrollThumb'
     ].forEach(prop => {
       const obj = this[prop];
       if (obj != null) {
@@ -385,13 +388,8 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
       .setDepth(cam.depth + 5)
       .setScrollFactor(0)
       .on('pointerdown', () => this._drawPreviousImage(imgInfo))
-      .on('pointerover', () => {
-        this.previousArrow.setScale(1.2);
-      })
-      .on('pointerout', () => {
-        this.previousArrow.setScale(0.8);
-      });
-
+      .on('pointerover',  () => this.previousArrow.setScale(1.2))
+      .on('pointerout',   () => this.previousArrow.setScale(0.8));
 
     this.nextArrow = scene.add.image(arrowRightX, imageCenterY, 'right-arrow')
       .setOrigin(0.5)
@@ -400,40 +398,154 @@ export class InteractableRect extends Phaser.GameObjects.Rectangle {
       .setDepth(cam.depth + 5)
       .setScrollFactor(0)
       .on('pointerdown', () => this._drawNextImage(imgInfo))
-      .on('pointerover', () => {
-      this.nextArrow.setScale(1.2);
-      })
-      .on('pointerout', () => {
-        this.nextArrow.setScale(0.8);
-      });
+      .on('pointerover',  () => this.nextArrow.setScale(1.2))
+      .on('pointerout',   () => this.nextArrow.setScale(0.8));
 
-    // 6) info area at bottom 20%
+    // 6) info area border
     const infoH = bgH * infoAreaPercentage - gap;
     const infoY = offsetY + gap + imageAreaH + infoH/2;
     const infoW = bgW * 0.8;
+    const infoX = offsetX + bgW/2;
 
     this.projectInfoBorder = scene.add.rectangle(
-      offsetX + bgW/2, infoY, infoW, infoH, 0, 0
+      infoX, infoY, infoW, infoH, 0, 0
     )
       .setStrokeStyle(2, 0x000000)
       .setOrigin(0.5)
       .setDepth(cam.depth + 2)
       .setScrollFactor(0);
 
-    this.projectInfoText = scene.add.text(
-      offsetX + bgW/2, infoY,
-      this.tileProps['Info'] || '',
-      {
-        fontSize: `${Math.round(bgH * 0.025)}px`,
-        color:    '#000000',
-        align:    'center',
-        wordWrap:{ width: infoW - margin * 2 }
-      }
-    )
-      .setOrigin(0.5)
-      .setDepth(cam.depth + 3)
-      .setScrollFactor(0);
+    // PROJECT'S INFO TEXT
+    const boxX = infoX - infoW/2;
+    const boxY = infoY - infoH/2;
+    this._createScrollableText(
+      boxX, boxY,
+      infoW, infoH,
+      this.tileProps['Info'] || 'No description available.',
+      margin,
+      cam.depth + 10
+    );
   }
+
+  /**
+   * Builds a Phaser.Text inside a Container,
+   * masks it to (x,w,h), and wires up wheel + drag scrolling.
+   */
+  _createScrollableText(x, y, w, h, textValue, margin, depth) {
+    const scene        = this.scene;
+    const SCROLL_SPEED = 0.3;  // adjust for smoother/faster
+
+    // 1) the background box
+    const bg = scene.add
+      .rectangle(x, y, w, h, 0x000000, 0.85)
+      .setOrigin(0, 0)
+      .setDepth(depth)
+      .setScrollFactor(0)
+      .setInteractive();
+
+    // 2) the text inside (wordWrapped)
+    const infoText = scene.add
+      .text(x + margin, y + margin, textValue, {
+        fontSize: `${Math.round(h * 0.15)}px`,
+        color:    '#ffffff',
+        wordWrap: { width: w - margin * 2 }
+      })
+      .setOrigin(0, 0)
+      .setDepth(depth + 1)
+      .setScrollFactor(0);
+
+    // 3) mask so any overflow is clipped
+    const mask = bg.createGeometryMask();
+    infoText.setMask(mask);
+
+    // 4) compute scrolling bounds
+    const viewH     = h - margin * 2;
+    const contentH  = infoText.height;
+    const maxScroll = Math.max(0, contentH - viewH);
+
+    let scrollY     = 0;
+    let dragging    = false;
+    let startY, startScroll;
+
+    // 5) add a scrollbar track + thumb
+    const barWidth      = Math.max(4, margin * 0.5);
+    const barX          = x + w - margin - barWidth;
+    const track = scene.add
+      .rectangle(barX, y + margin, barWidth, viewH, 0xffffff, 0.2)
+      .setOrigin(0, 0)
+      .setDepth(depth + 2)
+      .setScrollFactor(0);
+
+    // initial thumb height proportional to view/content
+    const thumbH0 = contentH > 0
+      ? Phaser.Math.Clamp( viewH * (viewH / contentH), 20, viewH )
+      : viewH;
+
+    const thumb = scene.add
+      .rectangle(barX, y + margin, barWidth, thumbH0, 0xffffff, 0.6)
+      .setOrigin(0, 0)
+      .setDepth(depth + 3)
+      .setScrollFactor(0)
+      .setInteractive({ draggable: true });
+
+    // helper to update thumb position
+    const updateThumb = () => {
+      const range = viewH - thumb.height;
+      const t     = maxScroll > 0 ? scrollY / maxScroll : 0;
+      thumb.y     = y + margin + t * range;
+    };
+
+    // 6) mouse wheel on bg
+    bg.on('wheel', pointer => {
+      scrollY = Phaser.Math.Clamp(
+        scrollY + pointer.deltaY * SCROLL_SPEED,
+        0,
+        maxScroll
+      );
+      infoText.y = y + margin - scrollY;
+      updateThumb();
+    });
+
+    // 7) drag anywhere on bg
+    bg
+      .on('pointerdown', p => {
+        dragging    = true;
+        startY      = p.y;
+        startScroll = scrollY;
+      })
+      .on('pointerup',   () => dragging = false)
+      .on('pointerout',  () => dragging = false)
+      .on('pointermove', p => {
+        if (!dragging) return;
+        const dy = p.y - startY;
+        scrollY = Phaser.Math.Clamp(startScroll - dy, 0, maxScroll);
+        infoText.y = y + margin - scrollY;
+        updateThumb();
+      });
+
+    // 8) also allow dragging the thumb itself
+    thumb
+      .on('dragstart', () => {
+        dragging    = false; // cancel bg drag
+      })
+      .on('drag', (pointer, dragX, dragY) => {
+        // compute t from thumbY
+        const localY = Phaser.Math.Clamp(dragY - (y + margin), 0, viewH - thumb.height);
+        const t      = localY / (viewH - thumb.height);
+        scrollY      = t * maxScroll;
+        infoText.y   = y + margin - scrollY;
+        updateThumb();
+      });
+
+    // 9) store refs so you can destroy later if needed
+    this.projectInfoText       = infoText;
+    this.projectInfoTextMask   = bg;
+    this.projectInfoScrollTrack = track;
+    this.projectInfoScrollThumb = thumb;
+  }
+
+
+
 
   _drawMediaAt(imgInfo, keyIndex) {
     const scene = this.scene;

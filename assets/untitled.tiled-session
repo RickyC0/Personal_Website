@@ -123,10 +123,10 @@
             "expandedObjectLayers": [
                 9
             ],
-            "scale": 2,
+            "scale": 1,
             "selectedLayer": 5,
             "viewCenter": {
-                "x": 288,
+                "x": 256,
                 "y": 640
             }
         },
@@ -221,7 +221,7 @@
         "MovingClouds.tmx"
     ],
     "project": "untitled.tiled-project",
-    "property.type": "string",
+    "property.type": "file",
     "recentFiles": [
         "Map.tmx",
         "MovingClouds.tmx",

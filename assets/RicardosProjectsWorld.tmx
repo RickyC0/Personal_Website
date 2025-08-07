@@ -381,7 +381,14 @@
  <objectgroup id="9" name="Interactables">
   <object id="32" name="Project 3" type="Project" x="183.727" y="666.091" width="87.4545" height="54.9091">
    <properties>
-    <property name="Info" value="test"/>
+    <property name="Info">Concordia Virtual Tour++ transforms the existing static 360° campus view into a fully interactive WebGL app powered by 3D Gaussian Splatting, letting users freely navigate and explore Concordia’s grounds. An integrated AI chatbot (via a Hugging Face model) answers questions about the university or your current scene.
+
+3D Gaussian Splatting Pipeline: Capture images → COLMAP reconstruction → train Gaussians → load into a WebGL viewer with navigation &amp; collision detection.
+
+AI Chatbot: Swap in any sub-10 MB Hugging Face model via its URL and set your API key.
+
+Origins &amp; Thanks:
+Built in 24 hrs for ConUHacks IX, leveraging Antimatter15’s WebGL Gaussian Splat viewer and the foundational research on real-time Gaussian Splatting.</property>
     <property name="cover" type="file" value="professional-files/Concordia-Virtual-tour/concordia-virtual-tour-cover.png"/>
     <property name="display-rect" type="bool" value="true"/>
     <property name="img 2" type="file" value="professional-files/Concordia-Virtual-tour/concordia-virtual-tour-demo.mp4"/>
@@ -396,17 +403,36 @@
   </object>
   <object id="36" name="Project 2" type="Project" x="369.273" y="826.379" width="75.4545" height="53.4091">
    <properties>
-    <property name="Info" value="test"/>
+    <property name="Info">A summer‐long robotics showcase blending real‐time AI vision, embedded control, wireless comms and custom hardware:
+
+AI‐Powered Auto‐Aiming Cannon: Python + OpenCV/Mediapipe + YOLOv8 on Hugging Face for live target detection and PID-tuned motor actuation.
+
+FPV Head-Tracked Turret &amp; Tank Steering: I²C gyros feeding C++/Arduino code for smooth camera control and non-linear drive algorithms.
+
+Custom Radio &amp; Remote: NRF24 SPI packets in C++ for low-latency RC, paired with a 3D-printed, integrated antenna and power-managed handheld unit.
+
+Marshmallow Launcher &amp; Power Electronics: 3D-printed magazine cannon (4–5 m range) plus a ground-up buck converter PCB with RVP/OVP and adjustable output.
+
+Core skills span Python, C++, PCB design, 3D modeling/printing, AI vision stacks, and real-time embedded systems.</property>
     <property name="cover" type="file" value="professional-files/RC-Car/turret-rc-car-2.jpg"/>
     <property name="display-rect" type="bool" value="true"/>
     <property name="img 1" type="file" value="professional-files/RC-Car/turret-rc-car-1.jpg"/>
     <property name="img 3" type="file" value="professional-files/RC-Car/rc-car-remote.png"/>
     <property name="vid 1" type="file" value="professional-files/RC-Car/rc-car-marshmallow-cannon.mp4"/>
+    <property name="vid 2" type="file" value="professional-files/RC-Car/rc-car-trailer.mp4"/>
    </properties>
   </object>
   <object id="37" name="Project 1" type="Project" x="196.606" y="959.712" width="68.9545" height="49.4091">
    <properties>
-    <property name="Info" value="test"/>
+    <property name="Info">DND-Game is a CMake-built, Dungeons &amp; Dragons-style RPG featuring:
+
+Default Campaign: Three progressively tougher levels to explore and conquer.
+
+Map Editor: Design and save your own battlegrounds (map loader coming soon).
+
+Character Creator: Craft and customize your hero before adventuring.
+
+Options &amp; Audio: Tweak gameplay and sound settings via the main menu.</property>
     <property name="cover" type="file" value="professional-files/DND-Game/dnd-cover.jpg"/>
     <property name="display-rect" type="bool" value="true"/>
     <property name="img 1" type="file" value="professional-files/DND-Game/level-1.png"/>
