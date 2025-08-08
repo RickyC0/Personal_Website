@@ -1,825 +1,854 @@
-export class InteractableRect extends Phaser.GameObjects.Rectangle {
-  //array of interactable rects
-  static instances = [];
+  export class InteractableRect extends Phaser.GameObjects.Rectangle {
+    //array of interactable rects
+    static instances = [];
 
-  // state flags
-  static isProjectOpen = false;
+    // state flags
+    static isProjectOpen = false;
 
-  constructor(scene, obj, x, y,previousScene) {
-    // compute world‐coords
-    x = x == null ? obj.x + obj.width/2 : x;
-    y = y == null ? obj.y + obj.height/2 : y;
+    constructor(scene, obj, x, y,previousScene) {
+      // compute world‐coords
+      x = x == null ? obj.x + obj.width/2 : x;
+      y = y == null ? obj.y + obj.height/2 : y;
 
-    super(scene, x, y, obj.width, obj.height, 0x000000, 0);
-    this.obj = obj;
-    this.scene = scene;
-    this.name = obj.name || 'InteractableRect';
-    this.previousScene=previousScene;
+      super(scene, x, y, obj.width, obj.height, 0x000000, 0);
+      this.obj = obj;
+      this.scene = scene;
+      this.name = obj.name || 'InteractableRect';
+      this.previousScene=previousScene;
 
-    scene.add.existing(this);
-    scene.physics.add.existing(this, true);
-    this.setInteractive({ useHandCursor: true });
+      scene.add.existing(this);
+      scene.physics.add.existing(this, true);
+      this.setInteractive({ useHandCursor: true });
 
-    this._drawHoverArea();
+      this._drawHoverArea();
 
-    // collect Tiled properties
-    this.tileProps    = {};
-    (obj.properties||[]).forEach(p => this.tileProps[p.name] = p.value);
+      // collect Tiled properties
+      this.tileProps    = {};
+      (obj.properties||[]).forEach(p => this.tileProps[p.name] = p.value);
 
-    // hover-only graphics
-    this.hoverRectBackground = null;
-    this.hoverRectText = null;
-    this.hoverRect = null;
-    this.hoverImage = null;
+      // hover-only graphics
+      this.hoverRectBackground = null;
+      this.hoverRectText = null;
+      this.hoverRect = null;
+      this.hoverImage = null;
 
-    //project-page graphics
-    this.projectImages = [];
-    this.projectBackground = null;
-    this.projectBorder = null;
-    this.projectCloseButton = null;
-    this.projectCloseButtonBackground = null;
-    this.projectInfoText = null;
-    this.projectInfoBorder = null;
-    this.previousArrow = null;
-    this.nextArrow = null;
-    this.currentImage = null;
-    this.currentImageIndex = 0;
+      //project-page graphics
+      InteractableRect.currentProjectRect = null;
+      this.projectImages = [];
+      this.projectBackground = null;
+      this.projectBorder = null;
+      this.projectCloseButton = null;
+      this.projectCloseButtonBackground = null;
+      this.projectInfoText = null;
+      this.projectInfoBorder = null;
+      this.previousArrow = null;
+      this.nextArrow = null;
+      this.currentImage = null;
+      this.currentImageIndex = 0;
 
-    //Rectangle properties
-    this.HOVER_RECTANGLE_SCALE_FACTOR = 5;
+      //Rectangle properties
+      this.HOVER_RECTANGLE_SCALE_FACTOR = 5;
 
-    // pointer events
-    this.on('pointerover',  this._onPointerOver);
-    this.on('pointerout',   this._onPointerOut);
-    this.on('pointerdown',  () => this.interact(true));
+      // pointer events
+      this.on('pointerover',  this._onPointerOver);
+      this.on('pointerout',   this._onPointerOut);
+      this.on('pointerdown',  () => this.interact(true));
 
-    // 1) track every instance
-    InteractableRect.instances.push(this);
+      // 1) track every instance
+      InteractableRect.instances.push(this);
 
-    this.scene.input.keyboard.on('keydown-ESC',()=> this._closeProject());
-    this.scene.input.keyboard.on('keydown-ENTER', ()=> this.interact());
+      this.scene.input.keyboard.on('keydown-ESC',()=> this._closeProject());
+      this.scene.input.keyboard.on('keydown-ENTER', ()=> this.interact());
 
-    //VERY IMPORTANT!
-    //This removes the InteractableRect objects of this scene from the static instances array
-    //Therefore when we reopen this scene anew, it will create new objects for the rectangles, and so we need to remove the old ones here
-    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      InteractableRect.instances = InteractableRect.instances.filter(
-        inst => inst.scene !== this.scene
-      );
-    });
-    
-  }
+      //VERY IMPORTANT!
+      //This removes the InteractableRect objects of this scene from the static instances array
+      //Therefore when we reopen this scene anew, it will create new objects for the rectangles, and so we need to remove the old ones here
+      scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        if (this.scene && this.scene.scale && this._onResizeHandler) {
+          this.scene.scale.off('resize', this._onResizeHandler);
+          this._onResizeHandler = null;
+        }
 
-  preload() { 
-    this.load.scenePlugin({
-        key: 'rexuiplugin',
-        url: 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexuiplugin.min.js',
-        sceneKey: 'rexUI'
-    });      
-  }
+        InteractableRect.instances = InteractableRect.instances.filter(
+          inst => inst.scene !== this.scene
+        );
 
-  _drawHoverArea(){
-    // hover highlight
-    const PADDING = 8;
-    this.hoverHighlight = this.scene.add.rectangle(
-      this.x, this.y,
-      this.obj.width  + PADDING*2,
-      this.obj.height + PADDING*2,
-      0xffff00, 0.3
-    )
-    .setVisible(false)
-    .setDepth(this.depth+1)
-    .setScrollFactor(1);
-  }
+      });
 
-  static updateCoordinates(obj,x,y){
-    obj.x=x;
-    obj.y=y;
+      this._onResizeHandler = this._onResize.bind(this);
 
-    obj.hoverHighlight=null;
-
-    obj._drawHoverArea();
-
-  }
-
-  _checkClosestRect() {
-    let closest     = null;
-    let minDistance = Infinity;
-
-    // pull the player off the scene
-    const player = this.scene.player;
-    if (!player) {
-      console.warn('No player on scene');
-      return null;
+      // listen for real Phaser resize events on this scene:
+      this.scene.scale.on('resize', this._onResizeHandler);
     }
 
-    const px = player.x;
-    const py = player.y + player.displayHeight/2;
+    preload() { 
+      this.load.scenePlugin({
+          key: 'rexuiplugin',
+          url: 'https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexuiplugin.min.js',
+          sceneKey: 'rexUI'
+      });      
+    }
 
-    for (const inst of InteractableRect.instances) {
-      if (!inst) continue;
+    // This is called when the scene is resized
+    // e.g. when the browser window is resized
+    _onResize () {
+      // redraw hover highlight for this rect
+      if (this.hoverHighlight) {
+        this.hoverHighlight.destroy();
+      }
 
-      // use inst.x/inst.y instead of inst.body.center
-      const zx = inst.x;
-      const zy = inst.y;
-      const d  = Phaser.Math.Distance.Between(px, py, zx, zy);
-
-      if (d < minDistance) {
-        minDistance = d;
-        closest     = inst;
+      // if the project modal is currently open, clear & redisplay it
+      // **only** the rect that actually opened the modal should clear/redraw
+      if (InteractableRect.isProjectOpen && InteractableRect.currentProjectRect === this) {
+        this._clearDisplayRect();
+        this._displayProjectInfo();
       }
     }
 
-    return closest;
-  }
-
-  _warnClosestRect(){
-    const temp = this._checkClosestRect();
-
-    if(this._checkClosestRect()){
-      temp.warnFarInteraction();
-      temp.drawShortestPath();
-    }
-  }
-
-
-  _onPointerOver() {
-    // if a project is open, don’t show any hover
-    if (InteractableRect.isProjectOpen) {
-      return;
+    _drawHoverArea(){
+      // hover highlight
+      const PADDING = 8;
+      this.hoverHighlight = this.scene.add.rectangle(
+        this.x, this.y,
+        this.obj.width  + PADDING*2,
+        this.obj.height + PADDING*2,
+        0xffff00, 0.3
+      )
+      .setVisible(false)
+      .setDepth(this.depth+1)
+      .setScrollFactor(1);
     }
 
-    // otherwise do the normal hover
-    if (this.tileProps['display-rect']) {
-      this._displayHoverRect();
-    } else {
-      this.hoverHighlight.setVisible(true);
-    }
-  }
+    static updateCoordinates(obj,x,y){
+      obj.x=x;
+      obj.y=y;
 
-  _onPointerOut() {
-    // if a project is open, don’t clear or hide anything
-    if (InteractableRect.isProjectOpen) {
-      return;
+      obj.hoverHighlight=null;
+
+      obj._drawHoverArea();
+
     }
 
-    this.hoverHighlight.setVisible(false);
-    this._clearDisplayRect();
-  }
+    _checkClosestRect() {
+      let closest     = null;
+      let minDistance = Infinity;
 
-  _displayHoverRect() {
-    if (this.hoverRect) return; // already shown
-    if(InteractableRect.isProjectOpen) return;
-
-    // 1) draw the rectangle border
-    this.hoverRect = this.scene.add.rectangle(
-      this.x, this.y,
-      this.obj.width * this.HOVER_RECTANGLE_SCALE_FACTOR, this.obj.height * this.HOVER_RECTANGLE_SCALE_FACTOR
-    )
-    .setStrokeStyle(2, 0xffffff)
-    .setDepth(this.depth + 2)
-    .setScrollFactor(1);
-
-    //The rectangle will either contain:
-    //a) AN IMAGE
-    if (this.tileProps['cover']) {
-      //TODO: CLEAN UP THE WAY WE PRELOAD IMAGES
-      const fullPath = this.tileProps['cover']; 
-      // "C:/…/level-1.png"
-
-      // 1) grab only the filename
-      const filename = fullPath.split(/[\\/]/).pop(); // "level-1.png"
-
-      // 2) strip the extension to get the key
-      const key = filename.replace(/\.\w+$/, '');     // "level-1"
-
-      // 3) now add the image with that key
-      // compute exactly how big you want it
-      const displayW = this.obj.width  * this.HOVER_RECTANGLE_SCALE_FACTOR;
-      const displayH = this.obj.height * this.HOVER_RECTANGLE_SCALE_FACTOR;
-
-      this.hoverImage = this.scene.add.image(this.x, this.y, key)
-        .setOrigin(0.5)
-        .setDepth(this.depth + 3)
-        .setScrollFactor(1)
-        .setDisplaySize(displayW, displayH);
-        
-    } 
-    //b) TEXT
-    else if (this.tileProps['text']) {
-      this._displayPropertyText();
-    }
-  }
-
-  _displayPropertyText(){
-    const textValue = this.tileProps['text'];
-
-    // a) create the text first to measure its size
-    const txt = this.scene.add.text(
-      this.x, this.y,
-      textValue,
-      {
-        fontSize: '22px',
-        color: '#ffffff',
-        align: 'center'
+      // pull the player off the scene
+      const player = this.scene.player;
+      if (!player) {
+        console.warn('No player on scene');
+        return null;
       }
-    )
-    .setOrigin(0.5)
-    .setScrollFactor(1);
 
-    // b) compute a light‑brown background
-    const bgW = this.obj.width * this.HOVER_RECTANGLE_SCALE_FACTOR;
-    const bgH = this.obj.height * this.HOVER_RECTANGLE_SCALE_FACTOR;
-    const bg = this.scene.add.rectangle(
-      this.x, this.y,
-      bgW, bgH,
-      0xC8B889  // light‑brown
-    )
-    .setOrigin(0.5)
-    .setDepth(this.depth + 3)
-    .setScrollFactor(1);
+      const px = player.x;
+      const py = player.y + player.displayHeight/2;
 
-    // c) bump the text above the brown rect
-    txt.setDepth(bg.depth + 1);
+      for (const inst of InteractableRect.instances) {
+        if (!inst) continue;
 
-    this.hoverRectBackground = bg;
-    this.hoverRectText = txt;
-  }
+        // use inst.x/inst.y instead of inst.body.center
+        const zx = inst.x;
+        const zy = inst.y;
+        const d  = Phaser.Math.Distance.Between(px, py, zx, zy);
 
-
-  //-------------- Projects Pages ---------------------------------------
-  _clearDisplayRect() {
-    [
-      'hoverRect',
-      'hoverImage',
-      'hoverRectBackground',
-      'hoverRectText',
-      'projectBorder',
-      'projectBackground',
-      'projectCloseButton',
-      'projectCloseButtonBackground',
-      'projectInfoBorder',
-      'projectInfoText',
-      'projectInfoTextMask',
-      'previousArrow',
-      'nextArrow',
-      'currentImage',
-      'projectImages',
-      'projectInfoScrollTrack',
-      'projectInfoScrollThumb'
-    ].forEach(prop => {
-      const obj = this[prop];
-      if (obj != null) {
-        if (Array.isArray(obj)) {
-          obj.forEach(o => o.destroy && o.destroy());
-        } else if (typeof obj.destroy === 'function') {
-          obj.destroy();
+        if (d < minDistance) {
+          minDistance = d;
+          closest     = inst;
         }
       }
-      this[prop] = null;
-    });
 
-    this.currentImageIndex = 0;
-  }
+      return closest;
+    }
 
-  _closeProject(){
-    InteractableRect.isProjectOpen = false;
-    this._clearDisplayRect();
-  }
+    _warnClosestRect(){
+      const temp = this._checkClosestRect();
 
-  _displayProjetInfo() {
-    InteractableRect.isProjectOpen = true;
+      if(this._checkClosestRect()){
+        temp.warnFarInteraction();
+        temp.drawShortestPath();
+      }
+    }
 
-    const scene   = this.scene;
-    const cam     = scene.cameras.main;
-    const screenW = scene.scale.width;
-    const screenH = scene.scale.height;
 
-    // 80%×90% modal, centered
-    const bgW = screenW * 0.8;
-    const bgH = screenH * 0.9;
-    const offsetX = (screenW - bgW) / 2;
-    const offsetY = (screenH - bgH) / 2;
+    _onPointerOver() {
+      // if a project is open, don’t show any hover
+      if (InteractableRect.isProjectOpen) {
+        return;
+      }
 
-    // dynamic margins & proportions
-    const margin = Math.min(bgW, bgH) * 0.02;
-    const imgAreaPercentage = 0.8;   // 80% of modal width for image
-    const infoAreaPercentage = 0.2;   // 20% of modal height for info
-    const gap = bgH * 0.05; // 5% gap
+      // otherwise do the normal hover
+      if (this.tileProps['display-rect']) {
+        this._displayHoverRect();
+      } else {
+        this.hoverHighlight.setVisible(true);
+      }
+    }
 
-    // 1) modal background
-    this.projectBackground = scene.add.image(offsetX, offsetY, 'brick-background')
-      .setOrigin(0, 0)
-      .setDisplaySize(bgW, bgH)
-      .setDepth(cam.depth - 1)
-      .setScrollFactor(0);
+    _onPointerOut() {
+      // if a project is open, don’t clear or hide anything
+      if (InteractableRect.isProjectOpen) {
+        return;
+      }
 
-    // 2) modal border
-    this.projectBorder = scene.add.rectangle(offsetX, offsetY, bgW, bgH, 0, 0)
-      .setStrokeStyle(4, 0x000000)
-      .setOrigin(0, 0)
-      .setDepth(cam.depth + 1)
-      .setScrollFactor(0);
+      this.hoverHighlight.setVisible(false);
+      this._clearDisplayRect();
+    }
 
-    // 3) close button top-right
-    const closeX = offsetX + bgW - margin;
-    const closeY = offsetY + margin;
-    this.projectCloseButtonBackground = scene.add.rectangle(closeX, closeY, 0, 0, 0xc88889)
-      .setOrigin(1, 0)
-      .setStrokeStyle(2, 0x000000)
-      .setDepth(cam.depth + 2)
-      .setScrollFactor(0);
+    _displayHoverRect() {
+      if (this.hoverRect) return; // already shown
+      if(InteractableRect.isProjectOpen) return;
 
-    this.projectCloseButton = scene.add.text(closeX, closeY, '✕', {
-        fontSize: `${Math.round(bgH * 0.04)}px`,
-        color:    '#000000'
-      })
-      .setOrigin(1, 0)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(cam.depth + 3)
-      .setScrollFactor(0)
-      .on('pointerdown', () => this._closeProject());
+      // 1) draw the rectangle border
+      this.hoverRect = this.scene.add.rectangle(
+        this.x, this.y,
+        this.obj.width * this.HOVER_RECTANGLE_SCALE_FACTOR, this.obj.height * this.HOVER_RECTANGLE_SCALE_FACTOR
+      )
+      .setStrokeStyle(2, 0xffffff)
+      .setDepth(this.depth + 2)
+      .setScrollFactor(1);
 
-    this.projectCloseButtonBackground.setSize(
-      this.projectCloseButton.width,
-      this.projectCloseButton.height * 0.8
-    );
+      //The rectangle will either contain:
+      //a) AN IMAGE
+      if (this.tileProps['cover']) {
+        //TODO: CLEAN UP THE WAY WE PRELOAD IMAGES
+        const fullPath = this.tileProps['cover']; 
+        // "C:/…/level-1.png"
 
-    // 4) compute image box
-    const imageAreaH = bgH * imgAreaPercentage - gap; // top 80% minus gap
-    const imgX = offsetX + bgW / 2;
-    const imgY = offsetY + gap + imageAreaH / 2;
-    const imgW = bgW * imgAreaPercentage;
-    const imgH = imageAreaH * imgAreaPercentage;
-    const imgInfo    = { imgX, imgY, imgW, imgH };
+        // 1) grab only the filename
+        const filename = fullPath.split(/[\\/]/).pop(); // "level-1.png"
 
-    // harvest keys
-    this.mediaProps = Object.entries(this.tileProps)
-    .filter(([propKey, value]) => /\.(png|jpe?g|svg|gif|mp4)$/i.test(value))
-    .map(([propKey]) => propKey);
+        // 2) strip the extension to get the key
+        const key = filename.replace(/\.\w+$/, '');     // "level-1"
 
-    this.imageKeys = this.mediaProps.map(propKey => {
-      const fn = this.tileProps[propKey].split(/[\\/]/).pop();
-      return fn.replace(/\.\w+$/, '');
-    });
+        // 3) now add the image with that key
+        // compute exactly how big you want it
+        const displayW = this.obj.width  * this.HOVER_RECTANGLE_SCALE_FACTOR;
+        const displayH = this.obj.height * this.HOVER_RECTANGLE_SCALE_FACTOR;
 
-    // ensure index
-    if (this.currentImageIndex == null) {
+        this.hoverImage = this.scene.add.image(this.x, this.y, key)
+          .setOrigin(0.5)
+          .setDepth(this.depth + 3)
+          .setScrollFactor(1)
+          .setDisplaySize(displayW, displayH);
+          
+      } 
+      //b) TEXT
+      else if (this.tileProps['text']) {
+        this._displayPropertyText();
+      }
+    }
+
+    _displayPropertyText(){
+      const textValue = this.tileProps['text'];
+
+      // a) create the text first to measure its size
+      const txt = this.scene.add.text(
+        this.x, this.y,
+        textValue,
+        {
+          fontSize: '22px',
+          color: '#ffffff',
+          align: 'center'
+        }
+      )
+      .setOrigin(0.5)
+      .setScrollFactor(1);
+
+      // b) compute a light‑brown background
+      const bgW = this.obj.width * this.HOVER_RECTANGLE_SCALE_FACTOR;
+      const bgH = this.obj.height * this.HOVER_RECTANGLE_SCALE_FACTOR;
+      const bg = this.scene.add.rectangle(
+        this.x, this.y,
+        bgW, bgH,
+        0xC8B889  // light‑brown
+      )
+      .setOrigin(0.5)
+      .setDepth(this.depth + 3)
+      .setScrollFactor(1);
+
+      // c) bump the text above the brown rect
+      txt.setDepth(bg.depth + 1);
+
+      this.hoverRectBackground = bg;
+      this.hoverRectText = txt;
+    }
+
+
+    //-------------- Projects Pages ---------------------------------------
+    _clearDisplayRect() {
+      [
+        'hoverRect',
+        'hoverImage',
+        'hoverRectBackground',
+        'hoverRectText',
+        'projectBorder',
+        'projectBackground',
+        'projectCloseButton',
+        'projectCloseButtonBackground',
+        'projectInfoBorder',
+        'projectInfoText',
+        'projectInfoTextMask',
+        'previousArrow',
+        'nextArrow',
+        'currentImage',
+        'projectImages',
+        'projectInfoScrollTrack',
+        'projectInfoScrollThumb'
+      ].forEach(prop => {
+        const obj = this[prop];
+        if (obj != null) {
+          if (Array.isArray(obj)) {
+            obj.forEach(o => o.destroy && o.destroy());
+          } else if (typeof obj.destroy === 'function') {
+            obj.destroy();
+          }
+        }
+        this[prop] = null;
+      });
+
       this.currentImageIndex = 0;
     }
-    // initial draw
-    this._drawMediaAt(imgInfo, this.currentImageIndex);
 
-    // 5) arrows aligned to image center
-    const arrowW = bgW * 0.1;
-    const arrowH = bgH * 0.1;
+    _closeProject(){
+      InteractableRect.isProjectOpen = false;
+      InteractableRect.currentProjectRect = null;
+      this._clearDisplayRect();
+    }
 
-    // compute a 5% offset of the image width
-    const arrowOffset = imgInfo.imgW * 0.065;
+    _displayProjectInfo() {
+      InteractableRect.isProjectOpen = true;
 
-    const imageCenterY = imgY;
-    const arrowLeftX  = imgInfo.imgX - (imgInfo.imgW / 2) - arrowOffset;
-    const arrowRightX = imgInfo.imgX + (imgInfo.imgW / 2) + arrowOffset;
+      const scene   = this.scene;
+      const cam     = scene.cameras.main;
+      const screenW = scene.scale.width;
+      const screenH = scene.scale.height;
 
-    this.previousArrow = scene.add.image(arrowLeftX, imageCenterY, 'left-arrow')
-      .setOrigin(0.5)
-      .setDisplaySize(arrowW, arrowH)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(cam.depth + 5)
-      .setScrollFactor(0)
-      .on('pointerdown', () => this._drawPreviousImage(imgInfo))
-      .on('pointerover',  () => this.previousArrow.setScale(1.2))
-      .on('pointerout',   () => this.previousArrow.setScale(0.8));
+      // 80%×90% modal, centered
+      const bgW = screenW * 0.8;
+      const bgH = screenH * 0.9;
+      const offsetX = (screenW - bgW) / 2;
+      const offsetY = (screenH - bgH) / 2;
 
-    this.nextArrow = scene.add.image(arrowRightX, imageCenterY, 'right-arrow')
-      .setOrigin(0.5)
-      .setDisplaySize(arrowW, arrowH)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(cam.depth + 5)
-      .setScrollFactor(0)
-      .on('pointerdown', () => this._drawNextImage(imgInfo))
-      .on('pointerover',  () => this.nextArrow.setScale(1.2))
-      .on('pointerout',   () => this.nextArrow.setScale(0.8));
+      // dynamic margins & proportions
+      const margin = Math.min(bgW, bgH) * 0.02;
+      const imgAreaPercentage = 0.8;   // 80% of modal width for image
+      const infoAreaPercentage = 0.2;   // 20% of modal height for info
+      const gap = bgH * 0.05; // 5% gap
 
-    // 6) info area border
-    const infoH = bgH * infoAreaPercentage - gap;
-    const infoY = offsetY + gap + imageAreaH + infoH/2;
-    const infoW = bgW * 0.8;
-    const infoX = offsetX + bgW/2;
+      // 1) modal background
+      this.projectBackground = scene.add.image(offsetX, offsetY, 'brick-background')
+        .setOrigin(0, 0)
+        .setDisplaySize(bgW, bgH)
+        .setDepth(cam.depth - 1)
+        .setScrollFactor(0);
 
-    this.projectInfoBorder = scene.add.rectangle(
-      infoX, infoY, infoW, infoH, 0, 0
-    )
-      .setStrokeStyle(2, 0x000000)
-      .setOrigin(0.5)
-      .setDepth(cam.depth + 2)
-      .setScrollFactor(0);
+      // 2) modal border
+      this.projectBorder = scene.add.rectangle(offsetX, offsetY, bgW, bgH, 0, 0)
+        .setStrokeStyle(4, 0x000000)
+        .setOrigin(0, 0)
+        .setDepth(cam.depth + 1)
+        .setScrollFactor(0);
 
-    // PROJECT'S INFO TEXT
-    const boxX = infoX - infoW/2;
-    const boxY = infoY - infoH/2;
-    this._createScrollableText(
-      boxX, boxY,
-      infoW, infoH,
-      this.tileProps['Info'] || 'No description available.',
-      margin,
-      cam.depth + 10
-    );
-  }
+      // 3) close button top-right
+      const closeX = offsetX + bgW - margin;
+      const closeY = offsetY + margin;
+      this.projectCloseButtonBackground = scene.add.rectangle(closeX, closeY, 0, 0, 0xc88889)
+        .setOrigin(1, 0)
+        .setStrokeStyle(2, 0x000000)
+        .setDepth(cam.depth + 2)
+        .setScrollFactor(0);
 
-  /**
-   * Builds a Phaser.Text inside a Container,
-   * masks it to (x,w,h), and wires up wheel + drag scrolling.
-   */
-  _createScrollableText(x, y, w, h, textValue, margin, depth) {
-    const scene        = this.scene;
-    const SCROLL_SPEED = 0.3;  // adjust for smoother/faster
+      this.projectCloseButton = scene.add.text(closeX, closeY, '✕', {
+          fontSize: `${Math.round(bgH * 0.04)}px`,
+          color:    '#000000'
+        })
+        .setOrigin(1, 0)
+        .setInteractive({ useHandCursor: true })
+        .setDepth(cam.depth + 3)
+        .setScrollFactor(0)
+        .on('pointerdown', () => this._closeProject());
 
-    // 1) the background box
-    const bg = scene.add
-      .rectangle(x, y, w, h, 0x000000, 0.85)
-      .setOrigin(0, 0)
-      .setDepth(depth)
-      .setScrollFactor(0)
-      .setInteractive();
-
-    // 2) the text inside (wordWrapped)
-    const infoText = scene.add
-      .text(x + margin, y + margin, textValue, {
-        fontSize: `${Math.round(h * 0.15)}px`,
-        color:    '#ffffff',
-        wordWrap: { width: w - margin * 2 }
-      })
-      .setOrigin(0, 0)
-      .setDepth(depth + 1)
-      .setScrollFactor(0);
-
-    // 3) mask so any overflow is clipped
-    const mask = bg.createGeometryMask();
-    infoText.setMask(mask);
-
-    // 4) compute scrolling bounds
-    const viewH     = h - margin * 2;
-    const contentH  = infoText.height;
-    const maxScroll = Math.max(0, contentH - viewH);
-
-    let scrollY     = 0;
-    let dragging    = false;
-    let startY, startScroll;
-
-    // 5) add a scrollbar track + thumb
-    const barWidth      = Math.max(4, margin * 0.5);
-    const barX          = x + w - margin - barWidth;
-    const track = scene.add
-      .rectangle(barX, y + margin, barWidth, viewH, 0xffffff, 0.2)
-      .setOrigin(0, 0)
-      .setDepth(depth + 2)
-      .setScrollFactor(0);
-
-    // initial thumb height proportional to view/content
-    const thumbH0 = contentH > 0
-      ? Phaser.Math.Clamp( viewH * (viewH / contentH), 20, viewH )
-      : viewH;
-
-    const thumb = scene.add
-      .rectangle(barX, y + margin, barWidth, thumbH0, 0xffffff, 0.6)
-      .setOrigin(0, 0)
-      .setDepth(depth + 3)
-      .setScrollFactor(0)
-      .setInteractive({ draggable: true });
-
-    // helper to update thumb position
-    const updateThumb = () => {
-      const range = viewH - thumb.height;
-      const t     = maxScroll > 0 ? scrollY / maxScroll : 0;
-      thumb.y     = y + margin + t * range;
-    };
-
-    // 6) mouse wheel on bg
-    bg.on('wheel', pointer => {
-      scrollY = Phaser.Math.Clamp(
-        scrollY + pointer.deltaY * SCROLL_SPEED,
-        0,
-        maxScroll
+      this.projectCloseButtonBackground.setSize(
+        this.projectCloseButton.width,
+        this.projectCloseButton.height * 0.8
       );
-      infoText.y = y + margin - scrollY;
-      updateThumb();
-    });
 
-    // 7) drag anywhere on bg
-    bg
-      .on('pointerdown', p => {
-        dragging    = true;
-        startY      = p.y;
-        startScroll = scrollY;
-      })
-      .on('pointerup',   () => dragging = false)
-      .on('pointerout',  () => dragging = false)
-      .on('pointermove', p => {
-        if (!dragging) return;
-        const dy = p.y - startY;
-        scrollY = Phaser.Math.Clamp(startScroll - dy, 0, maxScroll);
+      // 4) compute image box
+      const imageAreaH = bgH * imgAreaPercentage - gap; // top 80% minus gap
+      const imgX = offsetX + bgW / 2;
+      const imgY = offsetY + gap + imageAreaH / 2;
+      const imgW = bgW * imgAreaPercentage;
+      const imgH = imageAreaH * imgAreaPercentage;
+      const imgInfo    = { imgX, imgY, imgW, imgH };
+
+      // harvest keys
+      this.mediaProps = Object.entries(this.tileProps)
+      .filter(([propKey, value]) => /\.(png|jpe?g|svg|gif|mp4)$/i.test(value))
+      .map(([propKey]) => propKey);
+
+      this.imageKeys = this.mediaProps.map(propKey => {
+        const fn = this.tileProps[propKey].split(/[\\/]/).pop();
+        return fn.replace(/\.\w+$/, '');
+      });
+
+      // ensure index
+      if (this.currentImageIndex == null) {
+        this.currentImageIndex = 0;
+      }
+      // initial draw
+      this._drawMediaAt(imgInfo, this.currentImageIndex);
+
+      // 5) arrows aligned to image center
+      const arrowW = bgW * 0.1;
+      const arrowH = bgH * 0.1;
+
+      // compute a 5% offset of the image width
+      const arrowOffset = imgInfo.imgW * 0.065;
+
+      const imageCenterY = imgY;
+      const arrowLeftX  = imgInfo.imgX - (imgInfo.imgW / 2) - arrowOffset;
+      const arrowRightX = imgInfo.imgX + (imgInfo.imgW / 2) + arrowOffset;
+
+      this.previousArrow = scene.add.image(arrowLeftX, imageCenterY, 'left-arrow')
+        .setOrigin(0.5)
+        .setDisplaySize(arrowW, arrowH)
+        .setInteractive({ useHandCursor: true })
+        .setDepth(cam.depth + 5)
+        .setScrollFactor(0)
+        .on('pointerdown', () => this._drawPreviousImage(imgInfo))
+        .on('pointerover',  () => this.previousArrow.setScale(1.2))
+        .on('pointerout',   () => this.previousArrow.setScale(0.8));
+
+      this.nextArrow = scene.add.image(arrowRightX, imageCenterY, 'right-arrow')
+        .setOrigin(0.5)
+        .setDisplaySize(arrowW, arrowH)
+        .setInteractive({ useHandCursor: true })
+        .setDepth(cam.depth + 5)
+        .setScrollFactor(0)
+        .on('pointerdown', () => this._drawNextImage(imgInfo))
+        .on('pointerover',  () => this.nextArrow.setScale(1.2))
+        .on('pointerout',   () => this.nextArrow.setScale(0.8));
+
+      // 6) info area border
+      const infoH = bgH * infoAreaPercentage - gap;
+      const infoY = offsetY + gap + imageAreaH + infoH/2;
+      const infoW = bgW * 0.8;
+      const infoX = offsetX + bgW/2;
+
+      this.projectInfoBorder = scene.add.rectangle(
+        infoX, infoY, infoW, infoH, 0, 0
+      )
+        .setStrokeStyle(2, 0x000000)
+        .setOrigin(0.5)
+        .setDepth(cam.depth + 2)
+        .setScrollFactor(0);
+
+      // PROJECT'S INFO TEXT
+      const boxX = infoX - infoW/2;
+      const boxY = infoY - infoH/2;
+      this._createScrollableText(
+        boxX, boxY,
+        infoW, infoH,
+        this.tileProps['Info'] || 'No description available.',
+        margin,
+        cam.depth + 10
+      );
+    }
+
+    /**
+     * Builds a Phaser.Text inside a Container,
+     * masks it to (x,w,h), and wires up wheel + drag scrolling.
+     */
+    _createScrollableText(x, y, w, h, textValue, margin, depth) {
+      const scene        = this.scene;
+      const SCROLL_SPEED = 0.3;  // adjust for smoother/faster
+
+      // 1) the background box
+      const bg = scene.add
+        .rectangle(x, y, w, h, 0x000000, 0.85)
+        .setOrigin(0, 0)
+        .setDepth(depth)
+        .setScrollFactor(0)
+        .setInteractive();
+
+      // 2) the text inside (wordWrapped)
+      const infoText = scene.add
+        .text(x + margin, y + margin, textValue, {
+          fontSize: `${Math.round(h * 0.15)}px`,
+          color:    '#ffffff',
+          wordWrap: { width: w - margin * 2 }
+        })
+        .setOrigin(0, 0)
+        .setDepth(depth + 1)
+        .setScrollFactor(0);
+
+      // 3) mask so any overflow is clipped
+      const mask = bg.createGeometryMask();
+      infoText.setMask(mask);
+
+      // 4) compute scrolling bounds
+      const viewH     = h - margin * 2;
+      const contentH  = infoText.height;
+      const maxScroll = Math.max(0, contentH - viewH);
+
+      let scrollY     = 0;
+      let dragging    = false;
+      let startY, startScroll;
+
+      // 5) add a scrollbar track + thumb
+      const barWidth      = Math.max(4, margin * 0.5);
+      const barX          = x + w - margin - barWidth;
+      const track = scene.add
+        .rectangle(barX, y + margin, barWidth, viewH, 0xffffff, 0.2)
+        .setOrigin(0, 0)
+        .setDepth(depth + 2)
+        .setScrollFactor(0);
+
+      // initial thumb height proportional to view/content
+      const thumbH0 = contentH > 0
+        ? Phaser.Math.Clamp( viewH * (viewH / contentH), 20, viewH )
+        : viewH;
+
+      const thumb = scene.add
+        .rectangle(barX, y + margin, barWidth, thumbH0, 0xffffff, 0.6)
+        .setOrigin(0, 0)
+        .setDepth(depth + 3)
+        .setScrollFactor(0)
+        .setInteractive({ draggable: true });
+
+      // helper to update thumb position
+      const updateThumb = () => {
+        const range = viewH - thumb.height;
+        const t     = maxScroll > 0 ? scrollY / maxScroll : 0;
+        thumb.y     = y + margin + t * range;
+      };
+
+      // 6) mouse wheel on bg
+      bg.on('wheel', pointer => {
+        scrollY = Phaser.Math.Clamp(
+          scrollY + pointer.deltaY * SCROLL_SPEED,
+          0,
+          maxScroll
+        );
         infoText.y = y + margin - scrollY;
         updateThumb();
       });
 
-    // 8) also allow dragging the thumb itself
-    thumb
-      .on('dragstart', () => {
-        dragging    = false; // cancel bg drag
-      })
-      .on('drag', (pointer, dragX, dragY) => {
-        // compute t from thumbY
-        const localY = Phaser.Math.Clamp(dragY - (y + margin), 0, viewH - thumb.height);
-        const t      = localY / (viewH - thumb.height);
-        scrollY      = t * maxScroll;
-        infoText.y   = y + margin - scrollY;
-        updateThumb();
-      });
+      // 7) drag anywhere on bg
+      bg
+        .on('pointerdown', p => {
+          dragging    = true;
+          startY      = p.y;
+          startScroll = scrollY;
+        })
+        .on('pointerup',   () => dragging = false)
+        .on('pointerout',  () => dragging = false)
+        .on('pointermove', p => {
+          if (!dragging) return;
+          const dy = p.y - startY;
+          scrollY = Phaser.Math.Clamp(startScroll - dy, 0, maxScroll);
+          infoText.y = y + margin - scrollY;
+          updateThumb();
+        });
 
-    // 9) store refs so you can destroy later if needed
-    this.projectInfoText       = infoText;
-    this.projectInfoTextMask   = bg;
-    this.projectInfoScrollTrack = track;
-    this.projectInfoScrollThumb = thumb;
-  }
+      // 8) also allow dragging the thumb itself
+      thumb
+        .on('dragstart', () => {
+          dragging    = false; // cancel bg drag
+        })
+        .on('drag', (pointer, dragX, dragY) => {
+          // compute t from thumbY
+          const localY = Phaser.Math.Clamp(dragY - (y + margin), 0, viewH - thumb.height);
+          const t      = localY / (viewH - thumb.height);
+          scrollY      = t * maxScroll;
+          infoText.y   = y + margin - scrollY;
+          updateThumb();
+        });
 
-
-
-
-  _drawMediaAt(imgInfo, keyIndex) {
-    const scene = this.scene;
-    const cam   = scene.cameras.main;
-    const propKey = this.mediaProps[keyIndex];
-    const fullPath = this.tileProps[propKey];        // e.g. "myMovie.mov"
-    const filename = fullPath.split(/[\\/]/).pop();  // "myMovie.mov"
-    const key = filename.replace(/\.\w+$/, '');
-    const url = 'assets/' + fullPath;  
-
-    // destroy old
-    if (this.currentImage) this.currentImage.destroy();
-
-     if (/\.(mp4)$/i.test(fullPath)) {
-      console.log('Playing video:', url);
-
-      //This is necessary because of the 'realWidth' = null bug.
-      //if i don't use a placeholder, phaser will not display the video for some reason
-      const placeHolder = this.scene.add.image(imgInfo.imgX, imgInfo.imgY, 'brick-background')
-      .setVisible(false);
-
-      // 1) Create WITHOUT a key, at (x,y)
-      const video = scene.add.video(
-        imgInfo.imgX,
-        imgInfo.imgY,
-        key
-      )
-      .setOrigin(0.5)
-      .setDepth(cam.depth + 4)
-      .setScrollFactor(0)
-      .setTexture(placeHolder)
-      .setDisplaySize(imgInfo.imgW * 0.016 , imgInfo.imgH * 0.03);
-
-      video.play(true);
-
-      this.currentImage = video;
+      // 9) store refs so you can destroy later if needed
+      this.projectInfoText       = infoText;
+      this.projectInfoTextMask   = bg;
+      this.projectInfoScrollTrack = track;
+      this.projectInfoScrollThumb = thumb;
     }
 
-    else {
-      // image path…
-      this.currentImage = scene.add.image(
-        imgInfo.imgX,
-        imgInfo.imgY,
-        key
-      )
-      .setOrigin(0.5)
-      .setDepth(cam.depth + 4)
-      .setScrollFactor(0)
-      .setDisplaySize(imgInfo.imgW, imgInfo.imgH);
-    }
-  }
 
 
-  _drawNextImage(imgInfo) {
-    if (this.currentImageIndex < this.imageKeys.length - 1) {
-      this.currentImageIndex++;
-      this._drawMediaAt(imgInfo, this.currentImageIndex);
-    }
-  }
 
-  _drawPreviousImage(imgInfo) {
-    if (this.currentImageIndex > 0) {
-      this.currentImageIndex--;
-      this._drawMediaAt(imgInfo, this.currentImageIndex);
-    }
-  }
+    _drawMediaAt(imgInfo, keyIndex) {
 
-  checkInteraction() {
-    const p = this.scene.player;
-    const px = p.x, py = p.y + p.displayHeight/2;
-    const zx = this.body.center.x, zy = this.body.center.y;
-    return Phaser.Math.Distance.Between(px,py,zx,zy) <
-           Math.max(this.body.width,this.body.height);
-  }
+      const scene = this.scene;
+      const cam   = scene.cameras.main;
+      const propKey = this.mediaProps[keyIndex];
+      const fullPath = this.tileProps[propKey];        // e.g. "myMovie.mov"
+      const filename = fullPath.split(/[\\/]/).pop();  // "myMovie.mov"
+      const key = filename.replace(/\.\w+$/, '');
+      const url = 'assets/' + fullPath;  
 
-  drawShortestPath() {
-    const currentScene = this.scene;
-    const playerSprite = currentScene.player;
-    const playerX = playerSprite.x;
-    const playerY = playerSprite.y + playerSprite.displayHeight / 2;
-    const targetX = this.body.center.x;
-    const targetY = this.body.center.y;
+      // destroy old
+      if (this.currentImage) this.currentImage.destroy();
 
-    // Compute distance and angle
-    const totalDistance      = Phaser.Math.Distance.Between(playerX, playerY, targetX, targetY);
-    const angleBetweenPoints = Phaser.Math.Angle.Between(playerX, playerY, targetX, targetY);
+      if (/\.(mp4)$/i.test(fullPath)) {
+        //This is necessary because of the 'realWidth' = null bug.
+        //if i don't use a placeholder, phaser will not display the video for some reason
+        const placeHolder = this.scene.add.image(imgInfo.imgX, imgInfo.imgY, 'brick-background')
+        .setVisible(false);
 
-    // 1) If there's an existing path graphic, destroy it
-    if (this.shortestPath) {
-      this.shortestPath.destroy();
-      this.shortestPath = null;
+        // 1) Create WITHOUT a key, at (x,y)
+        const video = scene.add.video(
+          imgInfo.imgX,
+          imgInfo.imgY,
+          key
+        )
+        .setOrigin(0.5)
+        .setDepth(cam.depth + 4)
+        .setScrollFactor(0)
+        .setTexture(placeHolder)
+        .setDisplaySize(imgInfo.imgW * 0.016 , imgInfo.imgH * 0.03);
+
+        video.play(true);
+
+        this.currentImage = video;
+      }
+
+      else {
+        // image path…
+        this.currentImage = scene.add.image(
+          imgInfo.imgX,
+          imgInfo.imgY,
+          key
+        )
+        .setOrigin(0.5)
+        .setDepth(cam.depth + 4)
+        .setScrollFactor(0)
+        .setDisplaySize(imgInfo.imgW, imgInfo.imgH);
+      }
     }
 
-    // 2) Create a new Graphics object and store it
-    this.shortestPath = currentScene.add.graphics()
-      .setDepth(this.depth + 1)
-      .fillStyle(0xffffff, 1);
 
-    // 3) Dimensions for the little rectangles
-    const rectangleSpacing = 16;
-    const rectangleWidth   = currentScene.scale.width  * 0.005;
-    const rectangleHeight  = currentScene.scale.height * 0.005;
-
-    // 4) Draw the dotted line as a series of small rotated rectangles
-    for (let d = 0; d <= totalDistance; d += rectangleSpacing) {
-      const drawX = playerX + Math.cos(angleBetweenPoints) * d;
-      const drawY = playerY + Math.sin(angleBetweenPoints) * d;
-
-      this.shortestPath.save();
-      this.shortestPath.translateCanvas(drawX, drawY);
-      this.shortestPath.rotateCanvas(angleBetweenPoints);
-      this.shortestPath.fillRect(
-        -rectangleWidth  / 2,
-        -rectangleHeight / 2,
-        rectangleWidth,
-        rectangleHeight
-      );
-      this.shortestPath.restore();
+    _drawNextImage(imgInfo) {
+      if (this.currentImageIndex < this.imageKeys.length - 1) {
+        this.currentImageIndex++;
+        this._drawMediaAt(imgInfo, this.currentImageIndex);
+      }
     }
 
-    // 5) Automatically clear it after 1s
-    currentScene.time.delayedCall(1000, () => {
+    _drawPreviousImage(imgInfo) {
+      if (this.currentImageIndex > 0) {
+        this.currentImageIndex--;
+        this._drawMediaAt(imgInfo, this.currentImageIndex);
+      }
+    }
+
+    checkInteraction() {
+      const p = this.scene.player;
+      const px = p.x, py = p.y + p.displayHeight/2;
+      const zx = this.body.center.x, zy = this.body.center.y;
+      return Phaser.Math.Distance.Between(px,py,zx,zy) <
+            Math.max(this.body.width,this.body.height);
+    }
+
+    drawShortestPath() {
+      const currentScene = this.scene;
+      const playerSprite = currentScene.player;
+      const playerX = playerSprite.x;
+      const playerY = playerSprite.y + playerSprite.displayHeight / 2;
+      const targetX = this.body.center.x;
+      const targetY = this.body.center.y;
+
+      // Compute distance and angle
+      const totalDistance      = Phaser.Math.Distance.Between(playerX, playerY, targetX, targetY);
+      const angleBetweenPoints = Phaser.Math.Angle.Between(playerX, playerY, targetX, targetY);
+
+      // 1) If there's an existing path graphic, destroy it
       if (this.shortestPath) {
         this.shortestPath.destroy();
         this.shortestPath = null;
       }
-    });
-  }
 
-  warnFarInteraction() {
-    const scene = this.scene;
-    const player = scene.player;
-    const playerX = player.x;
-    const playerYTop = player.y - player.displayHeight / 2;
+      // 2) Create a new Graphics object and store it
+      this.shortestPath = currentScene.add.graphics()
+        .setDepth(this.depth + 1)
+        .fillStyle(0xffffff, 1);
 
-    // 1) clear any existing bubble/text/circles
-    if (this.thoughtBubble) {
-      this.thoughtBubble.destroy();
-      this.thoughtText.destroy();
-      this.thoughtCircles.forEach(c => c.destroy());
+      // 3) Dimensions for the little rectangles
+      const rectangleSpacing = 16;
+      const rectangleWidth   = currentScene.scale.width  * 0.005;
+      const rectangleHeight  = currentScene.scale.height * 0.005;
+
+      // 4) Draw the dotted line as a series of small rotated rectangles
+      for (let d = 0; d <= totalDistance; d += rectangleSpacing) {
+        const drawX = playerX + Math.cos(angleBetweenPoints) * d;
+        const drawY = playerY + Math.sin(angleBetweenPoints) * d;
+
+        this.shortestPath.save();
+        this.shortestPath.translateCanvas(drawX, drawY);
+        this.shortestPath.rotateCanvas(angleBetweenPoints);
+        this.shortestPath.fillRect(
+          -rectangleWidth  / 2,
+          -rectangleHeight / 2,
+          rectangleWidth,
+          rectangleHeight
+        );
+        this.shortestPath.restore();
+      }
+
+      // 5) Automatically clear it after 1s
+      currentScene.time.delayedCall(1000, () => {
+        if (this.shortestPath) {
+          this.shortestPath.destroy();
+          this.shortestPath = null;
+        }
+      });
     }
-    this.thoughtBubble = null;
-    this.thoughtText   = null;
-    this.thoughtCircles = [];
 
-    // dynamic sizing
-    const h = scene.scale.height;
-    const w = scene.scale.width;
+    warnFarInteraction() {
+      const scene = this.scene;
+      const player = scene.player;
+      const playerX = player.x;
+      const playerYTop = player.y - player.displayHeight / 2;
 
-    // 2) “thinking” dots
-    const radii        = [0.004, 0.007, 0.01].map(f => Math.round(f * h));
-    const verticalOffs = [0.005, 0.015, 0.03].map(f => f * h);
-
-    this.thoughtCircles = radii.map((radius, i) => {
-      return scene.add.circle(
-        playerX,
-        playerYTop - verticalOffs[i],
-        radius,
-        0xffffff
-      )
-      .setDepth(this.depth + 1)
-      .setStrokeStyle(Math.max(1, Math.round(0.002 * w)), 0x000000)
-      .setScrollFactor(1);
-    });
-
-    // 3) prepare text
-    const fontSizePx = Math.round(0.015 * h);
-    const message    = `Too far from: ${this.name}`;
-    const text = scene.add.text(0, 0, message, {
-      fontSize: `${fontSizePx}px`,
-      color:    '#000000',
-      align:    'center',
-      wordWrap: { width: w * 0.25 }
-    })
-    .setDepth(this.depth + 2)
-    .setScrollFactor(1);
-
-    // 4) compute bubble dimensions and draw it
-    const padding = Math.round(0.01 * w);
-    const bubbleW = text.width  + padding * 2;
-    const bubbleH = text.height + padding * 2;
-    const topDotY = playerYTop - verticalOffs[verticalOffs.length - 1];
-    const bubbleX = playerX;
-    const bubbleY = topDotY - bubbleH / 2 - (0.01 * h);
-    const cornerR = Math.round(0.1 * Math.min(bubbleW, bubbleH));
-
-    const bubbleGraphics = scene.add.graphics()
-      .setDepth(this.depth + 1)
-      .setScrollFactor(1)
-      .fillStyle(0xffffff, 1);
-
-    bubbleGraphics.fillRoundedRect(
-      bubbleX - bubbleW/2,
-      bubbleY - bubbleH/2,
-      bubbleW,
-      bubbleH,
-      cornerR
-    );
-    bubbleGraphics.lineStyle(Math.max(1, Math.round(0.002 * w)), 0x000000, 1);
-    bubbleGraphics.strokeRoundedRect(
-      bubbleX - bubbleW/2,
-      bubbleY - bubbleH/2,
-      bubbleW,
-      bubbleH,
-      cornerR
-    );
-
-    // position the text
-    text.setPosition(
-      bubbleX - text.width / 2,
-      bubbleY - text.height / 2
-    );
-
-    // 5) save refs
-    this.thoughtBubble = bubbleGraphics;
-    this.thoughtText   = text;
-
-    // 6) auto‐clear after 1.5s
-    scene.time.delayedCall(1500, () => {
+      // 1) clear any existing bubble/text/circles
       if (this.thoughtBubble) {
         this.thoughtBubble.destroy();
         this.thoughtText.destroy();
         this.thoughtCircles.forEach(c => c.destroy());
-        this.thoughtBubble = null;
-        this.thoughtText   = null;
-        this.thoughtCircles = [];
       }
-    });
-  }
+      this.thoughtBubble = null;
+      this.thoughtText   = null;
+      this.thoughtCircles = [];
 
+      // dynamic sizing
+      const h = scene.scale.height;
+      const w = scene.scale.width;
 
+      // 2) “thinking” dots
+      const radii        = [0.004, 0.007, 0.01].map(f => Math.round(f * h));
+      const verticalOffs = [0.005, 0.015, 0.03].map(f => f * h);
 
+      this.thoughtCircles = radii.map((radius, i) => {
+        return scene.add.circle(
+          playerX,
+          playerYTop - verticalOffs[i],
+          radius,
+          0xffffff
+        )
+        .setDepth(this.depth + 1)
+        .setStrokeStyle(Math.max(1, Math.round(0.002 * w)), 0x000000)
+        .setScrollFactor(1);
+      });
 
-  interact(click=false) {
-    if(InteractableRect.isProjectOpen){
-      return;
+      // 3) prepare text
+      const fontSizePx = Math.round(0.015 * h);
+      const message    = `Too far from: ${this.name}`;
+      const text = scene.add.text(0, 0, message, {
+        fontSize: `${fontSizePx}px`,
+        color:    '#000000',
+        align:    'center',
+        wordWrap: { width: w * 0.25 }
+      })
+      .setDepth(this.depth + 2)
+      .setScrollFactor(1);
+
+      // 4) compute bubble dimensions and draw it
+      const padding = Math.round(0.01 * w);
+      const bubbleW = text.width  + padding * 2;
+      const bubbleH = text.height + padding * 2;
+      const topDotY = playerYTop - verticalOffs[verticalOffs.length - 1];
+      const bubbleX = playerX;
+      const bubbleY = topDotY - bubbleH / 2 - (0.01 * h);
+      const cornerR = Math.round(0.1 * Math.min(bubbleW, bubbleH));
+
+      const bubbleGraphics = scene.add.graphics()
+        .setDepth(this.depth + 1)
+        .setScrollFactor(1)
+        .fillStyle(0xffffff, 1);
+
+      bubbleGraphics.fillRoundedRect(
+        bubbleX - bubbleW/2,
+        bubbleY - bubbleH/2,
+        bubbleW,
+        bubbleH,
+        cornerR
+      );
+      bubbleGraphics.lineStyle(Math.max(1, Math.round(0.002 * w)), 0x000000, 1);
+      bubbleGraphics.strokeRoundedRect(
+        bubbleX - bubbleW/2,
+        bubbleY - bubbleH/2,
+        bubbleW,
+        bubbleH,
+        cornerR
+      );
+
+      // position the text
+      text.setPosition(
+        bubbleX - text.width / 2,
+        bubbleY - text.height / 2
+      );
+
+      // 5) save refs
+      this.thoughtBubble = bubbleGraphics;
+      this.thoughtText   = text;
+
+      // 6) auto‐clear after 1.5s
+      scene.time.delayedCall(1500, () => {
+        if (this.thoughtBubble) {
+          this.thoughtBubble.destroy();
+          this.thoughtText.destroy();
+          this.thoughtCircles.forEach(c => c.destroy());
+          this.thoughtBubble = null;
+          this.thoughtText   = null;
+          this.thoughtCircles = [];
+        }
+      });
     }
 
-    if (!this.checkInteraction()) {
-      if(click){
-        this.warnFarInteraction();
-        this.drawShortestPath();
+
+
+
+    interact(click=false) {
+      if(InteractableRect.isProjectOpen){
         return;
       }
-      else{
-        this._warnClosestRect();
-        return;
+
+      if (!this.checkInteraction()) {
+        if(click){
+          this.warnFarInteraction();
+          this.drawShortestPath();
+          return;
+        }
+        else{
+          this._warnClosestRect();
+          return;
+        }
+        
+        
       }
-      
-      
+
+      //From the 'Game' scene, open the 'ricardosLore' scene
+      else if (this.name === 'ricardosLore') {
+        //NB: Hardcoded
+        const currentKey = 'Game';
+        this.scene.scene.launch('ricardosLore',{previousScene: currentKey});
+      }
+
+      //TODO: Click on displayed rect
+      else if(this.name === 'Exit'){
+        // stop this entire scene
+        this.scene.scene.stop(); 
+        // resume the previous scene key that the scene stored
+        // HERE I HARDCODED IT: It will skip ricardosLore
+        this.scene.scene.resume('Game');
+      }
+
+      else if (this.name.startsWith('Project') && !this.tileProps['text']) {
+        InteractableRect.isProjectOpen = true;
+        InteractableRect.currentProjectRect = this;       // remember me
+        this._displayProjectInfo();
+      }
     }
 
-    //From the 'Game' scene, open the 'ricardosLore' scene
-    else if (this.name === 'ricardosLore') {
-      //NB: Hardcoded
-      const currentKey = 'Game';
-      this.scene.scene.launch('ricardosLore',{previousScene: currentKey});
-    }
-
-    //TODO: Click on displayed rect
-    else if(this.name === 'Exit'){
-      // stop this entire scene
-      this.scene.scene.stop(); 
-      // resume the previous scene key that the scene stored
-      // HERE I HARDCODED IT: It will skip ricardosLore
-      this.scene.scene.resume('Game');
-    }
-
-    else if(this.name.startsWith('Project') && !this.tileProps['text']){
-      this._displayProjetInfo();
+    update() {
+    
     }
   }
-
-  update() {
-  
-  }
-}
