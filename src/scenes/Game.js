@@ -1,5 +1,6 @@
 //main.js
 //  This file is part of a Phaser 3 game that uses a tilemap created in Tiled.
+import VirtualJoystick from '../GameObjects/VirtualJoystick.js';
 import { Player } from '../GameObjects/Player.js';
 import { InteractableRect } from '../GameObjects/InteractableRect.js';
 
@@ -18,6 +19,12 @@ export class Game extends Phaser.Scene {
   }
 
   create(){
+    this.isTouch = this.sys.game.device.input.touch;
+    if (this.isTouch) {
+      this.input.addPointer(3);
+      this.joy = new VirtualJoystick(this);
+    }
+
     //Used to resize the this.map according to the window size, onload and dynamically
     const applyResponsiveZoom = (scene, map) => {
       const gameSize = scene.scale.gameSize;
@@ -168,21 +175,26 @@ export class Game extends Phaser.Scene {
     
 
   update(){
-      const cursors = this.cursors;
-      const keys = this.keys;
-
-      if (cursors.left.isDown || keys.left.isDown) {
-        this.player.moveLeft();
-      } else if (cursors.right.isDown || keys.right.isDown) {
-        this.player.moveRight();
-      } else if (cursors.up.isDown || keys.up.isDown) {
-        this.player.moveUp();
-      } else if (cursors.down.isDown || keys.down.isDown) {
-        this.player.moveDown();
-      } else {
-        this.player.idle();
-      }
+    // joystick axes (analog) -> -1..1
+    let jx = 0, jy = 0;
+    if (this.joy) {
+      const v = this.joy.getAxis();
+      jx = v.x; jy = v.y;
     }
+
+    // keyboard (digital)
+    const kx = (this.cursors.left.isDown || this.keys.left.isDown ? -1 : 0) +
+              (this.cursors.right.isDown || this.keys.right.isDown ?  1 : 0);
+    const ky = (this.cursors.up.isDown || this.keys.up.isDown ? -1 : 0) +
+              (this.cursors.down.isDown || this.keys.down.isDown ?  1 : 0);
+
+    // prefer joystick when active
+    const useJoy = (jx !== 0 || jy !== 0);
+    const ax = useJoy ? jx : Phaser.Math.Clamp(kx, -1, 1);
+    const ay = useJoy ? jy : Phaser.Math.Clamp(ky, -1, 1);
+
+    this.player.setMove(ax, ay);
+  }
   
 }
 
