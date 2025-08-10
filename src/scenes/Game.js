@@ -160,8 +160,11 @@ export class Game extends Phaser.Scene {
         this.interactables.add(zone);
       });
 
-
-
+      //-------------DISCLAIMER TO ROTATE MOBILE PHONE -------------
+      // This is a reminder to rotate your mobile phone for the best experience.
+      this._rotateHintDismissed = false;   // remember if user closes it
+      if (this.isTouch) this._initRotateHint();
+    
       // Resize map on load
       applyResponsiveZoom(this, this.map);
 
@@ -171,6 +174,83 @@ export class Game extends Phaser.Scene {
       });
      
     }
+
+    _initRotateHint() {
+      this.rotateHint = this.add.container(0, 0).setScrollFactor(0).setDepth(100000);
+      this._rotateHintDismissed = false;
+
+      const layout = () => {
+        const w = this.scale.width;
+        const h = this.scale.height;
+
+        // RELATIVE SIZING (percentages of screen)
+        const margin        = Math.min(w, h) * 0.025;   // 2.5% of smaller side
+        const barH          = h * 0.09;                 // 9% of height
+        const barW          = Math.max(w * 0.6, w - margin * 2); // at least 60% width or fit with margins
+        const strokeW       = Math.max(0.001 * Math.min(w, h), 0.001); // thin, relative
+        const padX          = barH * 0.35;              // left/right text padding
+        const closeSize     = barH * 0.45;              // “×” size
+        const closeHitSize  = barH * 0.8;               // larger tap target
+        const fontSizePx    = Math.round(h * 0.018);    // ~1.8% of height
+        const wrapWidth     = barW - padX * 2 - closeHitSize; // leave room for close button
+
+        // clear previous children
+        this.rotateHint.removeAll(true);
+
+        // background bar
+        const bg = this.add.rectangle(w * 0.5, h * 0.5, barW, barH, 0x000000, 0.75)
+        .setStrokeStyle(strokeW, 0xffffff, 0.15)
+        .setScrollFactor(0)
+        .setDepth(100);
+
+        // text
+        const txt = this.add.text(
+          bg.x - bg.width / 2 + padX,
+          bg.y,
+          'For a better experience, rotate your phone to landscape.',
+          {
+            fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
+            fontSize: `${fontSizePx}px`,
+            color: '#ffffff',
+            wordWrap: { width: wrapWidth }
+          }
+        )
+        .setOrigin(0, 0.5)
+        .setScrollFactor(0);
+
+        // close “×”
+        const close = this.add.text(
+          bg.x + bg.width / 2 - (padX * 0.6),
+          bg.y,
+          '×',
+          { fontSize: `${Math.round(closeSize)}px`, color: '#ffffff' }
+        ).setOrigin(0.5).setScrollFactor(0);
+
+        // larger, invisible hit area for close (touch-friendly)
+        const closeHit = this.add.zone(close.x, close.y, closeHitSize, closeHitSize)
+          .setOrigin(0.5).setScrollFactor(0).setInteractive({ useHandCursor: true });
+
+        closeHit.on('pointerdown', () => {
+          this._rotateHintDismissed = true;
+          this.rotateHint.setVisible(false);
+        });
+
+        this.rotateHint.add([bg, txt, close, closeHit]);
+      };
+
+      const updateVisibility = () => {
+        const isPortrait = this.scale.orientation === Phaser.Scale.PORTRAIT;
+        this.rotateHint.setVisible(this.isTouch && !this._rotateHintDismissed && isPortrait);
+      };
+
+      layout();
+      updateVisibility();
+
+      this.scale.on('orientationchange', () => updateVisibility());
+      this.scale.on('resize', () => { layout(); updateVisibility(); });
+    }
+
+
 
     
 
