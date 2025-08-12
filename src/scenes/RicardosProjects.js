@@ -218,53 +218,53 @@ export class RicardosProjects extends Phaser.Scene{
       }
 
       // 4) reposition & refresh collisions  ✅ null-safe + body-type safe
-if (this.collisionShapes) {
-  this.collisionShapes.forEach(shape => {
-    if (!shape) return;                // shape missing
-    // if you stored origX/origY on creation:
-    const ox = shape.origX ?? shape.x; // fallback if not set
-    const oy = shape.origY ?? shape.y;
+      if (this.collisionShapes) {
+        this.collisionShapes.forEach(shape => {
+          if (!shape) return;                // shape missing
+          // if you stored origX/origY on creation:
+          const ox = shape.origX ?? shape.x; // fallback if not set
+          const oy = shape.origY ?? shape.y;
 
-    shape.x = ox + this.worldOriginX_map;
-    shape.y = oy + this.worldOriginY_map;
+          shape.x = ox + this.worldOriginX_map;
+          shape.y = oy + this.worldOriginY_map;
 
-    const body = shape.body;
-    if (!body) return;                 // body not ready yet (first refresh, etc.)
+          const body = shape.body;
+          if (!body) return;                 // body not ready yet (first refresh, etc.)
 
-    if (body.isStatic) {
-      // StaticBody has updateFromGameObject()
-      body.updateFromGameObject();
-    } else if (typeof body.reset === 'function') {
-      // Dynamic body (rare for collisions, but be safe)
-      body.reset(shape.x, shape.y);
-    }
-  });
-}
+          if (body.isStatic) {
+            // StaticBody has updateFromGameObject()
+            body.updateFromGameObject();
+          } else if (typeof body.reset === 'function') {
+            // Dynamic body (rare for collisions, but be safe)
+            body.reset(shape.x, shape.y);
+          }
+        });
+      }
 
-// 5) reposition & reset interactable zones  ✅ same guards
-if (this.interactableZones) {
-  this.interactableZones.forEach(zone => {
-    if (!zone || !zone.scene) return;
+      // 5) reposition & reset interactable zones  ✅ same guards
+      if (this.interactableZones) {
+        this.interactableZones.forEach(zone => {
+          if (!zone || !zone.scene) return;
 
-    const newX = (zone.origTileX ?? zone.x) + this.worldOriginX_map;
-    const newY = (zone.origTileY ?? zone.y) + this.worldOriginY_map;
+          const newX = (zone.origTileX ?? zone.x) + this.worldOriginX_map;
+          const newY = (zone.origTileY ?? zone.y) + this.worldOriginY_map;
 
-    zone.setPosition(newX, newY);
+          zone.setPosition(newX, newY);
 
-    // If you keep the static helper, ensure it operates on the instance (not `this`)
-    // and doesn't assume a body exists yet.
-    InteractableRect.updateCoordinates?.(zone, newX, newY);
+          // If you keep the static helper, ensure it operates on the instance (not `this`)
+          // and doesn't assume a body exists yet.
+          InteractableRect.updateCoordinates?.(zone, newX, newY);
 
-    const body = zone.body;
-    if (!body) return;
+          const body = zone.body;
+          if (!body) return;
 
-    if (body.isStatic) {
-      body.updateFromGameObject();
-    } else if (typeof body.reset === 'function') {
-      body.reset(zone.x, zone.y);
-    }
-  });
-}
+          if (body.isStatic) {
+            body.updateFromGameObject();
+          } else if (typeof body.reset === 'function') {
+            body.reset(zone.x, zone.y);
+          }
+        });
+      }
 
 
       // 6) player: spawn once, else shift by origin delta
@@ -285,9 +285,20 @@ if (this.interactableZones) {
 
       // 7) camera & physics bounds — use same origin as map
       if (this.cameras?.main) {
-        this.cameras.main
-          .setBounds(0, 0, this.mapWidth, this.mapHeight)
-          .setSize(this.screenWidth, this.screenHeight);
+        const cam =  this.cameras.main;
+        const isPortrait = this.scale.height > this.scale.width;
+
+        if(isPortrait){
+            cam.setSize(this.screenWidth, this.screenHeight);
+
+            cam.setZoom(2);
+        }
+
+        else{
+          cam.setSize(this.screenWidth, this.screenHeight);
+          cam.setZoom(1);
+        }
+
 
         if (!this.cameras.main._following) {
           this.cameras.main.startFollow(this.player, false, 0.1, 0.1);
