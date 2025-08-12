@@ -127,7 +127,7 @@
             "selectedLayer": 5,
             "viewCenter": {
                 "x": 256,
-                "y": 640
+                "y": 640.5
             }
         },
         "RicardosProjectsWorld.tmx#Color Palette": {
