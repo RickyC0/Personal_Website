@@ -311,6 +311,11 @@
     }
 
     _closeProject(){
+      const scene = this.scene.sys?.settings?.key;
+      if (scene === 'RicardosProjects') {
+        this.scene.cameras.main.zoomTo(2, 200);
+      }
+
       InteractableRect.isProjectOpen = false;
       InteractableRect.currentProjectRect = null;
       this._clearDisplayRect();
@@ -320,6 +325,8 @@
     // --- Responsive modal: portrait (stacked) vs landscape (side-by-side) ---
     _displayProjectInfo() {
       InteractableRect.isProjectOpen = true;
+
+      this.scene.cameras.main.setZoom(1);
 
       const scene = this.scene;
       const sceneWidth = scene.scale.width;
