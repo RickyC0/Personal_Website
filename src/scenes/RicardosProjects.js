@@ -1,3 +1,4 @@
+import VirtualJoystick from '../GameObjects/VirtualJoystick.js';
 import { Player } from '../GameObjects/Player.js';
 import { InteractableRect } from '../GameObjects/InteractableRect.js';
 
@@ -10,7 +11,9 @@ export class RicardosProjects extends Phaser.Scene{
     
     init(data){
       this.previousScene = data.previousScene;
+      this._hasSpawned = false;
     }
+
     preload() { 
     this.load.scenePlugin({
         key: 'rexuiplugin',
@@ -20,6 +23,12 @@ export class RicardosProjects extends Phaser.Scene{
   }
 
     create(){
+      this.isTouch = this.sys.game.device.input.touch;
+        if (this.isTouch) {
+          this.input.addPointer(3);
+          this.joy = new VirtualJoystick(this);
+      }
+
       this.map = this.make.tilemap({ key: 'ricardosProjectsMap' });
       this.movingCloudsBackground = this.make.tilemap({ key: 'movingCloudsMap' });
 
@@ -73,6 +82,7 @@ export class RicardosProjects extends Phaser.Scene{
       // place the player
       this.player = new Player(this, 0, 0);
 
+
       this.cameras.main
         .startFollow(
           this.player,
@@ -100,12 +110,11 @@ export class RicardosProjects extends Phaser.Scene{
       // -------------------------------------------------------
       // SCALE & CENTER THE CLOUD‐BACKGROUND (detached from camera)
       // -------------------------------------------------------
+      this.scale.off('resize', this._onResize, this);  // remove if previously attached
       this.scale.on('resize', this._onResize, this);
 
       //Scale and center now at the start of the scene
       this._onResize();
-
-      
 
 
       //-------------------------------TRANSITION INTO THE SCENE--------------------------------
@@ -177,13 +186,17 @@ export class RicardosProjects extends Phaser.Scene{
 
     // called on startup & whenever the canvas resizes
     _onResize() {
-      // 1) sizes & origins
+      // 0) remember previous origin BEFORE recomputing (for player shift)
+      const prevOriginX = this.worldOriginX_map ?? 0;
+      const prevOriginY = this.worldOriginY_map ?? 0;
+
+      // 1) sizes & new origins
       this.screenWidth      = this.scale.width;
       this.screenHeight     = this.scale.height;
-      this.mapWidth         = this.map.widthInPixels;
-      this.mapHeight        = this.map.heightInPixels;
-      this.backgroundWidth  = this.movingCloudsBackground.widthInPixels;
-      this.backgroundHeight = this.movingCloudsBackground.heightInPixels;
+      this.mapWidth         = this.map?.widthInPixels  ?? 0;
+      this.mapHeight        = this.map?.heightInPixels ?? 0;
+      this.backgroundWidth  = this.movingCloudsBackground?.widthInPixels  ?? 0;
+      this.backgroundHeight = this.movingCloudsBackground?.heightInPixels ?? 0;
 
       this.worldOriginX_map = (this.screenWidth  - this.mapWidth)  / 2;
       this.worldOriginY_map = (this.screenHeight - this.mapHeight) / 2;
@@ -191,65 +204,118 @@ export class RicardosProjects extends Phaser.Scene{
       this.worldOriginY_bg  = (this.screenHeight - this.backgroundHeight) / 2;
 
       // 2) reposition static background
-      for (const layer of Object.values(this.backgroundLayerMap)) {
-        layer.setPosition(this.worldOriginX_bg, this.worldOriginY_bg)
-            .setScrollFactor(0);
+      if (this.backgroundLayerMap) {
+        for (const layer of Object.values(this.backgroundLayerMap)) {
+          layer.setPosition(this.worldOriginX_bg, this.worldOriginY_bg).setScrollFactor(0);
+        }
       }
 
       // 3) reposition main tilemap
-      for (const layer of Object.values(this.cloudsLayerMap)) {
-        layer.setPosition(this.worldOriginX_map, this.worldOriginY_map)
-            .setScrollFactor(1);
+      if (this.cloudsLayerMap) {
+        for (const layer of Object.values(this.cloudsLayerMap)) {
+          layer.setPosition(this.worldOriginX_map, this.worldOriginY_map).setScrollFactor(1);
+        }
       }
 
-      
-      //--------------------- COLLISION AND MAP LIMIT-------------------------------------------------------
-      // 4) reposition & refresh collisions
+      // 4) reposition & refresh collisions  ✅ null-safe + body-type safe
       if (this.collisionShapes) {
         this.collisionShapes.forEach(shape => {
-          shape.x = shape.origX + this.worldOriginX_map;
-          shape.y = shape.origY + this.worldOriginY_map;
-          shape.body.updateFromGameObject();
+          if (!shape) return;                // shape missing
+          // if you stored origX/origY on creation:
+          const ox = shape.origX ?? shape.x; // fallback if not set
+          const oy = shape.origY ?? shape.y;
+
+          shape.x = ox + this.worldOriginX_map;
+          shape.y = oy + this.worldOriginY_map;
+
+          const body = shape.body;
+          if (!body) return;                 // body not ready yet (first refresh, etc.)
+
+          if (body.isStatic) {
+            // StaticBody has updateFromGameObject()
+            body.updateFromGameObject();
+          } else if (typeof body.reset === 'function') {
+            // Dynamic body (rare for collisions, but be safe)
+            body.reset(shape.x, shape.y);
+          }
         });
       }
 
-      // 5) reposition & reset interactable zones
+      // 5) reposition & reset interactable zones  ✅ same guards
       if (this.interactableZones) {
         this.interactableZones.forEach(zone => {
-          const newX = zone.origTileX + this.worldOriginX_map;
-          const newY = zone.origTileY + this.worldOriginY_map;
-          zone.setPosition(
-            newX,
-            newY
-          );
-          InteractableRect.updateCoordinates(zone,newX,newY);
-          zone.body.reset(zone.x, zone.y);
+          if (!zone || !zone.scene) return;
+
+          const newX = (zone.origTileX ?? zone.x) + this.worldOriginX_map;
+          const newY = (zone.origTileY ?? zone.y) + this.worldOriginY_map;
+
+          zone.setPosition(newX, newY);
+
+          // If you keep the static helper, ensure it operates on the instance (not `this`)
+          // and doesn't assume a body exists yet.
+          InteractableRect.updateCoordinates?.(zone, newX, newY);
+
+          const body = zone.body;
+          if (!body) return;
+
+          if (body.isStatic) {
+            body.updateFromGameObject();
+          } else if (typeof body.reset === 'function') {
+            body.reset(zone.x, zone.y);
+          }
         });
       }
 
-      // 6) move the player to bottom‐middle again
-      const spawnX = this.worldOriginX_map + this.mapWidth/2;
-      const spawnY = this.worldOriginY_map + this.mapHeight - 10 * (this.map.tileHeight/2);
-      this.player.setPosition(spawnX, spawnY);
 
-      // 7) camera & physics bounds
-      this.cameras.main
-        .setBounds(
-          0,
-          0,
+      // 6) player: spawn once, else shift by origin delta
+      const dx = this.worldOriginX_map - prevOriginX;
+      const dy = this.worldOriginY_map - prevOriginY;
+
+      if (!this._hasSpawned) {
+        const spawnX = this.worldOriginX_map + this.mapWidth / 2;
+        const spawnY = this.worldOriginY_map + this.mapHeight - 10 * (this.map?.tileHeight ?? 0) / 2;
+        this.player.setPosition(spawnX, spawnY);
+        this.player.body?.reset?.(spawnX, spawnY);
+        this._hasSpawned = true;
+      } else {
+        // keep player over the same tiles when origins shift
+        this.player.setPosition(this.player.x + dx, this.player.y + dy);
+        this.player.body?.reset?.(this.player.x, this.player.y);
+      }
+
+      // 7) camera & physics bounds — use same origin as map
+      if (this.cameras?.main) {
+        const cam =  this.cameras.main;
+        const isPortrait = this.scale.height > this.scale.width;
+
+        if(isPortrait){
+            cam.setSize(this.screenWidth, this.screenHeight);
+
+            cam.setZoom(2);
+        }
+
+        else{
+          cam.setSize(this.screenWidth, this.screenHeight);
+          cam.setZoom(1);
+        }
+
+
+        if (!this.cameras.main._following) {
+          this.cameras.main.startFollow(this.player, false, 0.1, 0.1);
+        }
+      }
+
+      if (this.physics?.world) {
+        this.physics.world.setBounds(
+          this.worldOriginX_map,
+          this.worldOriginY_map,
           this.mapWidth,
           this.mapHeight
-        )
-        .setSize(this.screenWidth, this.screenHeight)
-        .startFollow(this.player, false, 0.1, 0.1);
-
-      this.physics.world.setBounds(
-        this.worldOriginX_map,
-        this.worldOriginY_map,
-        this.mapWidth,
-        this.mapHeight
-      );
+        );
+      }
     }
+
+
   
 
     moveCloudsRight(delta){
@@ -279,20 +345,25 @@ export class RicardosProjects extends Phaser.Scene{
     }
 
     update(time, delta){
-      const cursors = this.cursors;
-      const keys = this.keys;
-
-      if (cursors.left.isDown || keys.left.isDown) {
-        this.player.moveLeft();
-      } else if (cursors.right.isDown || keys.right.isDown) {
-        this.player.moveRight();
-      } else if (cursors.up.isDown || keys.up.isDown) {
-        this.player.moveUp();
-      } else if (cursors.down.isDown || keys.down.isDown) {
-        this.player.moveDown();
-      } else {
-        this.player.idle();
+      // joystick axes (analog) -> -1..1
+      let jx = 0, jy = 0;
+      if (this.joy) {
+        const v = this.joy.getAxis();
+        jx = v.x; jy = v.y;
       }
+
+      // keyboard (digital)
+      const kx = (this.cursors.left.isDown || this.keys.left.isDown ? -1 : 0) +
+                (this.cursors.right.isDown || this.keys.right.isDown ?  1 : 0);
+      const ky = (this.cursors.up.isDown || this.keys.up.isDown ? -1 : 0) +
+                (this.cursors.down.isDown || this.keys.down.isDown ?  1 : 0);
+
+      // prefer joystick when active
+      const useJoy = (jx !== 0 || jy !== 0);
+      const ax = useJoy ? jx : Phaser.Math.Clamp(kx, -1, 1);
+      const ay = useJoy ? jy : Phaser.Math.Clamp(ky, -1, 1);
+
+      this.player.setMove(ax, ay);
 
 
       //Background movement

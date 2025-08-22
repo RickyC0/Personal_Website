@@ -293,7 +293,8 @@
         'currentImage',
         'projectImages',
         'projectInfoScrollTrack',
-        'projectInfoScrollThumb'
+        'projectInfoScrollThumb',
+        'projectScrimEffect'
       ].forEach(prop => {
         const obj = this[prop];
         if (obj != null) {
@@ -310,270 +311,287 @@
     }
 
     _closeProject(){
+      const scene = this.scene.sys?.settings?.key;
+      if (scene === 'RicardosProjects') {
+        this.scene.cameras.main.zoomTo(2, 200);
+      }
+
       InteractableRect.isProjectOpen = false;
       InteractableRect.currentProjectRect = null;
       this._clearDisplayRect();
     }
 
+    // Responsive modal: portrait = stacked; landscape = side-by-side
+    // --- Responsive modal: portrait (stacked) vs landscape (side-by-side) ---
     _displayProjectInfo() {
       InteractableRect.isProjectOpen = true;
 
-      const scene   = this.scene;
-      const cam     = scene.cameras.main;
-      const screenW = scene.scale.width;
-      const screenH = scene.scale.height;
+      this.scene.cameras.main.setZoom(1);
 
-      // 80%×90% modal, centered
-      const bgW = screenW * 0.8;
-      const bgH = screenH * 0.9;
-      const offsetX = (screenW - bgW) / 2;
-      const offsetY = (screenH - bgH) / 2;
+      const scene = this.scene;
+      const sceneWidth = scene.scale.width;
+      const sceneHeight = scene.scale.height;
+      const isPortraitOrientation = sceneHeight > sceneWidth;
 
-      // dynamic margins & proportions
-      const margin = Math.min(bgW, bgH) * 0.02;
-      const imgAreaPercentage = 0.8;   // 80% of modal width for image
-      const infoAreaPercentage = 0.2;   // 20% of modal height for info
-      const gap = bgH * 0.05; // 5% gap
+      // UI container
+      if (this.modal) this.modal.destroy();
+      this.modal = scene.add.container(0, 0).setScrollFactor(0).setDepth(10000);
+      const addToModal = (go) => { this.modal.add(go); return go; };
 
-      // 1) modal background
-      this.projectBackground = scene.add.image(offsetX, offsetY, 'brick-background')
-        .setOrigin(0, 0)
-        .setDisplaySize(bgW, bgH)
-        .setDepth(cam.depth - 1)
-        .setScrollFactor(0);
+      // Scrim
+      this.projectScrimEffect = addToModal(
+        scene.add.rectangle(0, 0, sceneWidth, sceneHeight, 0x000000, 0.45)
+          .setOrigin(0)
+          .setScrollFactor(0)
+          .setInteractive()
+      );
 
-      // 2) modal border
-      this.projectBorder = scene.add.rectangle(offsetX, offsetY, bgW, bgH, 0, 0)
-        .setStrokeStyle(4, 0x000000)
-        .setOrigin(0, 0)
-        .setDepth(cam.depth + 1)
-        .setScrollFactor(0);
+      // Modal geometry
+      const modalWidth  = (isPortraitOrientation ? 0.92 : 0.90) * sceneWidth;
+      const modalHeight = (isPortraitOrientation ? 0.88 : 0.84) * sceneHeight;
+      const modalLeft   = (sceneWidth  - modalWidth)  / 2;
+      const modalTop    = (sceneHeight - modalHeight) / 2;
 
-      // 3) close button top-right
-      const closeX = offsetX + bgW - margin;
-      const closeY = offsetY + margin;
-      this.projectCloseButtonBackground = scene.add.rectangle(closeX, closeY, 0, 0, 0xc88889)
-        .setOrigin(1, 0)
-        .setStrokeStyle(2, 0x000000)
-        .setDepth(cam.depth + 2)
-        .setScrollFactor(0);
+      const borderThickness = Math.max((Math.min(sceneWidth, sceneHeight) * 0.002), 0.5);
+      const modalPadding    = Math.min(modalWidth, modalHeight) * 0.03;
 
-      this.projectCloseButton = scene.add.text(closeX, closeY, '✕', {
-          fontSize: `${Math.round(bgH * 0.04)}px`,
-          color:    '#000000'
+      // Background & border (names preserved)
+      this.projectBackground = addToModal(
+        scene.add.image(modalLeft, modalTop, 'brick-background')
+          .setOrigin(0)
+          .setDisplaySize(modalWidth, modalHeight)
+          .setScrollFactor(0)
+      );
+
+      this.projectBorder = addToModal(
+        scene.add.rectangle(modalLeft, modalTop, modalWidth, modalHeight, 0, 0)
+          .setOrigin(0)
+          .setScrollFactor(0)
+          .setStrokeStyle(borderThickness, 0x000000)
+      );
+
+      // Close button (names preserved)
+      const closeFontPx  = Math.round(modalHeight * 0.05);
+      const closeBtnX    = modalLeft + modalWidth - modalPadding;
+      const closeBtnY    = modalTop  + modalPadding;
+
+      this.projectCloseButtonBackground = addToModal(
+        scene.add.rectangle(closeBtnX, closeBtnY, 0, 0, 0xc88889)
+          .setOrigin(1, 0)
+          .setScrollFactor(0)
+      );
+
+      this.projectCloseButton = addToModal(
+        scene.add.text(closeBtnX, closeBtnY, '✕', {
+          fontSize: `${closeFontPx}px`,
+          color: '#000000'
         })
         .setOrigin(1, 0)
-        .setInteractive({ useHandCursor: true })
-        .setDepth(cam.depth + 3)
         .setScrollFactor(0)
-        .on('pointerdown', () => this._closeProject());
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', () => this._closeProject())
+      );
 
       this.projectCloseButtonBackground.setSize(
         this.projectCloseButton.width,
         this.projectCloseButton.height * 0.8
       );
 
-      // 4) compute image box
-      const imageAreaH = bgH * imgAreaPercentage - gap; // top 80% minus gap
-      const imgX = offsetX + bgW / 2;
-      const imgY = offsetY + gap + imageAreaH / 2;
-      const imgW = bgW * imgAreaPercentage;
-      const imgH = imageAreaH * imgAreaPercentage;
-      const imgInfo    = { imgX, imgY, imgW, imgH };
+      // Inner content area
+      const innerWidth  = modalWidth  - modalPadding * 2;
+      const innerHeight = modalHeight - modalPadding * 2;
 
-      // harvest keys
-      this.mediaProps = Object.entries(this.tileProps)
-      .filter(([propKey, value]) => /\.(png|jpe?g|svg|gif|mp4)$/i.test(value))
-      .map(([propKey]) => propKey);
+      // Arrow metrics (use these later; defined once)
+      const navArrowSize  = Math.min(modalWidth, modalHeight) * 0.08;
+      const navArrowInset = innerWidth * 0.02;  // relative offset from image edge
+      const arrowGutter   = navArrowSize / 2 + navArrowInset; // reserved lane for arrows
 
-      this.imageKeys = this.mediaProps.map(propKey => {
-        const fn = this.tileProps[propKey].split(/[\\/]/).pop();
-        return fn.replace(/\.\w+$/, '');
-      });
+      // Compute media + info frames (keeps layout logic)
+      let mediaFrame, infoFrame;
+      if (isPortraitOrientation) {
+        const verticalGap         = modalHeight * 0.05;
+        const imageHeight         = modalHeight * 0.55;
+        const imageWidth          = modalWidth  * 0.85;
+        const imageCenterX        = modalLeft + modalWidth / 2;
+        const imageCenterY        = modalTop  + modalPadding * 2 + imageHeight / 2;
 
-      // ensure index
-      if (this.currentImageIndex == null) {
-        this.currentImageIndex = 0;
+        mediaFrame = { imgX: imageCenterX, imgY: imageCenterY, imgW: imageWidth, imgH: imageHeight };
+
+        const infoHeight          = modalHeight - imageHeight - verticalGap - modalPadding * 2;
+        const infoWidth           = imageWidth;
+        const infoLeft            = modalLeft + (modalWidth - infoWidth) / 2;
+        const infoTop             = modalTop + modalPadding + imageHeight + verticalGap;
+
+        infoFrame = { x: infoLeft, y: infoTop, w: infoWidth, h: infoHeight };
+
+      } 
+      else {
+        const horizontalGap   = modalWidth * 0.04;
+
+        // Reserve a gutter (arrow lane) on the left *and* right of the image
+        // Available width for [image + gap + info] after keeping arrow gutters inside the modal padding
+        const availableRow = innerWidth - (arrowGutter * 2) - horizontalGap;
+
+        // Pick a comfortable image width within that row, leaving room for the right arrow + info
+        const imageWidth   = Math.min(availableRow * 0.60, modalWidth * 0.58);
+        const imageHeight  = Math.min(modalHeight * 0.90, innerHeight * 0.90);
+
+        // Position image so the left arrow fits fully between padding and image
+        const imageLeft    = modalLeft + modalPadding + arrowGutter;
+        const imageCenterX = imageLeft + imageWidth / 2;
+        const imageCenterY = modalTop + modalHeight / 2;
+
+        mediaFrame = { imgX: imageCenterX, imgY: imageCenterY, imgW: imageWidth, imgH: imageHeight };
+
+        // Info sits to the right; we already reserved (arrowGutter) before it
+        const infoWidth = availableRow - imageWidth;   // the rest of the lane
+        const infoLeft  = imageLeft + imageWidth + horizontalGap;
+        const infoTop   = modalTop + (modalHeight - imageHeight) / 2; // vertically match image
+        const infoHeight = imageHeight;
+
+        infoFrame = { x: infoLeft, y: infoTop, w: infoWidth, h: infoHeight };
       }
-      // initial draw
-      this._drawMediaAt(imgInfo, this.currentImageIndex);
 
-      // 5) arrows aligned to image center
-      const arrowW = bgW * 0.1;
-      const arrowH = bgH * 0.1;
+      const navArrowCenterY = mediaFrame.imgY;
 
-      // compute a 5% offset of the image width
-      const arrowOffset = imgInfo.imgW * 0.065;
+      // Media keys & initial media
+      this.mediaProps = Object.entries(this.tileProps)
+        .filter(([, value]) => /\.(png|jpe?g|svg|gif|mp4)$/i.test(value))
+        .map(([prop]) => prop);
 
-      const imageCenterY = imgY;
-      const arrowLeftX  = imgInfo.imgX - (imgInfo.imgW / 2) - arrowOffset;
-      const arrowRightX = imgInfo.imgX + (imgInfo.imgW / 2) + arrowOffset;
-
-      this.previousArrow = scene.add.image(arrowLeftX, imageCenterY, 'left-arrow')
-        .setOrigin(0.5)
-        .setDisplaySize(arrowW, arrowH)
-        .setInteractive({ useHandCursor: true })
-        .setDepth(cam.depth + 5)
-        .setScrollFactor(0)
-        .on('pointerdown', () => this._drawPreviousImage(imgInfo))
-        .on('pointerover',  () => this.previousArrow.setScale(1.2))
-        .on('pointerout',   () => this.previousArrow.setScale(0.8));
-
-      this.nextArrow = scene.add.image(arrowRightX, imageCenterY, 'right-arrow')
-        .setOrigin(0.5)
-        .setDisplaySize(arrowW, arrowH)
-        .setInteractive({ useHandCursor: true })
-        .setDepth(cam.depth + 5)
-        .setScrollFactor(0)
-        .on('pointerdown', () => this._drawNextImage(imgInfo))
-        .on('pointerover',  () => this.nextArrow.setScale(1.2))
-        .on('pointerout',   () => this.nextArrow.setScale(0.8));
-
-      // 6) info area border
-      const infoH = bgH * infoAreaPercentage - gap;
-      const infoY = offsetY + gap + imageAreaH + infoH/2;
-      const infoW = bgW * 0.8;
-      const infoX = offsetX + bgW/2;
-
-      this.projectInfoBorder = scene.add.rectangle(
-        infoX, infoY, infoW, infoH, 0, 0
-      )
-        .setStrokeStyle(2, 0x000000)
-        .setOrigin(0.5)
-        .setDepth(cam.depth + 2)
-        .setScrollFactor(0);
-
-      // PROJECT'S INFO TEXT
-      const boxX = infoX - infoW/2;
-      const boxY = infoY - infoH/2;
-      this._createScrollableText(
-        boxX, boxY,
-        infoW, infoH,
-        this.tileProps['Info'] || 'No description available.',
-        margin,
-        cam.depth + 10
+      this.imageKeys = this.mediaProps.map(prop =>
+        this.tileProps[prop].split(/[\\/]/).pop().replace(/\.\w+$/, '')
       );
+
+      this.currentImageIndex = 0;
+
+      this._drawMediaAt(mediaFrame, this.currentImageIndex);
+
+      // Ensure media is inside the modal container (so arrows added after are on top)
+      if (this.currentImage && this.currentImage.parentContainer !== this.modal) {
+        addToModal(this.currentImage);
+      }
+
+      // Background inner bounds (respect modal padding and arrow size)
+      const innerLeftBound   = modalLeft + modalPadding + navArrowSize / 2;
+      const innerRightBound  = modalLeft + modalWidth - modalPadding - navArrowSize / 2;
+      const innerTopBound    = modalTop + modalPadding + navArrowSize / 2;
+      const innerBottomBound = modalTop + modalHeight - modalPadding - navArrowSize / 2;
+
+      // Desired arrow positions (from original logic)
+      const desiredLeftX  = mediaFrame.imgX - (mediaFrame.imgW / 2) - navArrowInset;
+      const desiredRightX = mediaFrame.imgX + (mediaFrame.imgW / 2) + navArrowInset;
+
+      // Clamp into the background box
+      const leftX  = Phaser.Math.Clamp(desiredLeftX,  innerLeftBound, innerRightBound);
+      const rightX = Phaser.Math.Clamp(desiredRightX, innerLeftBound, innerRightBound);
+      const arrowY = Phaser.Math.Clamp(navArrowCenterY, innerTopBound, innerBottomBound);
+
+      this.previousArrow = addToModal(
+        scene.add.image(leftX, arrowY, 'left-arrow')
+          .setOrigin(0.5)
+          .setDisplaySize(navArrowSize, navArrowSize)
+          .setScrollFactor(0)
+          .setInteractive({ useHandCursor: true })
+          .on('pointerdown', () => this._drawPreviousImage(mediaFrame))
+          .on('pointerover', () => this.previousArrow.setDisplaySize(navArrowSize * 1.5, navArrowSize * 1.5))
+          .on('pointerout', () => this.previousArrow.setDisplaySize(navArrowSize, navArrowSize))
+      );
+
+      this.nextArrow = addToModal(
+        scene.add.image(rightX, arrowY, 'right-arrow')
+          .setOrigin(0.5)
+          .setDisplaySize(navArrowSize, navArrowSize)
+          .setScrollFactor(0)
+          .setInteractive({ useHandCursor: true })
+          .on('pointerdown', () => this._drawNextImage(mediaFrame))
+          .on('pointerover', () => this.nextArrow.setDisplaySize(navArrowSize * 1.5, navArrowSize * 1.5))
+          .on('pointerout', () => this.nextArrow.setDisplaySize(navArrowSize, navArrowSize)),
+      );
+
+      // Scrollable text (names preserved)
+      this._createScrollableText_intoContainer(
+        this.modal,
+        infoFrame.x, infoFrame.y, infoFrame.w, infoFrame.h,
+        this.tileProps['Info'] || 'No description available.',
+        modalPadding
+      );
+
+      // Keep close button above everything
+      this.modal.bringToTop(this.previousArrow);
+      this.modal.bringToTop(this.nextArrow);
+      this.modal.bringToTop(this.projectCloseButtonBackground);
+      this.modal.bringToTop(this.projectCloseButton);
     }
+
+
+
 
     /**
      * Builds a Phaser.Text inside a Container,
      * masks it to (x,w,h), and wires up wheel + drag scrolling.
      */
-    _createScrollableText(x, y, w, h, textValue, margin, depth) {
-      const scene        = this.scene;
-      const SCROLL_SPEED = 0.3;  // adjust for smoother/faster
+    _createScrollableText_intoContainer(container, x, y, w, h, textValue, margin) {
+      const scene = this.scene;
+      const SCROLL_SPEED = 0.3;
 
-      // 1) the background box
-      const bg = scene.add
-        .rectangle(x, y, w, h, 0x000000, 0.85)
-        .setOrigin(0, 0)
-        .setDepth(depth)
-        .setScrollFactor(0)
-        .setInteractive();
-
-      // 2) the text inside (wordWrapped)
-      const infoText = scene.add
-        .text(x + margin, y + margin, textValue, {
-          fontSize: `${Math.round(h * 0.15)}px`,
-          color:    '#ffffff',
+      const bg = scene.add.rectangle(x, y, w, h, 0x000000, 0.85)
+        .setOrigin(0, 0).setScrollFactor(0).setInteractive();
+      const infoText = scene.add.text(x + margin, y + margin, textValue, {
+          fontSize: `${Math.min(h*0.08,w*0.08)}px`,
+          color: '#ffffff',
           wordWrap: { width: w - margin * 2 }
-        })
-        .setOrigin(0, 0)
-        .setDepth(depth + 1)
-        .setScrollFactor(0);
+        }).setOrigin(0, 0).setScrollFactor(0);
 
-      // 3) mask so any overflow is clipped
       const mask = bg.createGeometryMask();
       infoText.setMask(mask);
 
-      // 4) compute scrolling bounds
       const viewH     = h - margin * 2;
       const contentH  = infoText.height;
       const maxScroll = Math.max(0, contentH - viewH);
-
       let scrollY     = 0;
-      let dragging    = false;
-      let startY, startScroll;
 
-      // 5) add a scrollbar track + thumb
-      const barWidth      = Math.max(4, margin * 0.5);
-      const barX          = x + w - margin - barWidth;
-      const track = scene.add
-        .rectangle(barX, y + margin, barWidth, viewH, 0xffffff, 0.2)
-        .setOrigin(0, 0)
-        .setDepth(depth + 2)
-        .setScrollFactor(0);
+      const barWidth = Math.max(4, margin * 0.5);
+      const barX     = x + w - margin - barWidth;
+      const track = scene.add.rectangle(barX, y + margin, barWidth, viewH, 0xffffff, 0.2)
+        .setOrigin(0, 0).setScrollFactor(0);
+      const thumbH0 = contentH > 0 ? Phaser.Math.Clamp(viewH * (viewH / contentH), 20, viewH) : viewH;
+      const thumb = scene.add.rectangle(barX, y + margin, barWidth, thumbH0, 0xffffff, 0.6)
+        .setOrigin(0, 0).setScrollFactor(0).setInteractive({ draggable: true });
 
-      // initial thumb height proportional to view/content
-      const thumbH0 = contentH > 0
-        ? Phaser.Math.Clamp( viewH * (viewH / contentH), 20, viewH )
-        : viewH;
-
-      const thumb = scene.add
-        .rectangle(barX, y + margin, barWidth, thumbH0, 0xffffff, 0.6)
-        .setOrigin(0, 0)
-        .setDepth(depth + 3)
-        .setScrollFactor(0)
-        .setInteractive({ draggable: true });
-
-      // helper to update thumb position
       const updateThumb = () => {
         const range = viewH - thumb.height;
         const t     = maxScroll > 0 ? scrollY / maxScroll : 0;
         thumb.y     = y + margin + t * range;
       };
 
-      // 6) mouse wheel on bg
-      bg.on('wheel', pointer => {
-        scrollY = Phaser.Math.Clamp(
-          scrollY + pointer.deltaY * SCROLL_SPEED,
-          0,
-          maxScroll
-        );
-        infoText.y = y + margin - scrollY;
-        updateThumb();
+      bg.on('wheel', p => {
+        scrollY = Phaser.Math.Clamp(scrollY + p.deltaY * SCROLL_SPEED, 0, maxScroll);
+        infoText.y = y + margin - scrollY; updateThumb();
+      });
+      bg.on('pointerdown', p => {
+        this._dragging = true; this._startY = p.y; this._startScroll = scrollY;
+      });
+      bg.on('pointerup',   () => this._dragging = false);
+      bg.on('pointerout',  () => this._dragging = false);
+      bg.on('pointermove', p => {
+        if (!this._dragging) return;
+        const dy = p.y - this._startY;
+        scrollY = Phaser.Math.Clamp(this._startScroll - dy, 0, maxScroll);
+        infoText.y = y + margin - scrollY; updateThumb();
+      });
+      thumb.on('drag', (pointer, dragX, dragY) => {
+        const localY = Phaser.Math.Clamp(dragY - (y + margin), 0, viewH - thumb.height);
+        const t = (viewH - thumb.height) > 0 ? localY / (viewH - thumb.height) : 0;
+        scrollY = t * maxScroll; infoText.y = y + margin - scrollY; updateThumb();
       });
 
-      // 7) drag anywhere on bg
-      bg
-        .on('pointerdown', p => {
-          dragging    = true;
-          startY      = p.y;
-          startScroll = scrollY;
-        })
-        .on('pointerup',   () => dragging = false)
-        .on('pointerout',  () => dragging = false)
-        .on('pointermove', p => {
-          if (!dragging) return;
-          const dy = p.y - startY;
-          scrollY = Phaser.Math.Clamp(startScroll - dy, 0, maxScroll);
-          infoText.y = y + margin - scrollY;
-          updateThumb();
-        });
-
-      // 8) also allow dragging the thumb itself
-      thumb
-        .on('dragstart', () => {
-          dragging    = false; // cancel bg drag
-        })
-        .on('drag', (pointer, dragX, dragY) => {
-          // compute t from thumbY
-          const localY = Phaser.Math.Clamp(dragY - (y + margin), 0, viewH - thumb.height);
-          const t      = localY / (viewH - thumb.height);
-          scrollY      = t * maxScroll;
-          infoText.y   = y + margin - scrollY;
-          updateThumb();
-        });
-
-      // 9) store refs so you can destroy later if needed
-      this.projectInfoText       = infoText;
-      this.projectInfoTextMask   = bg;
+      container.add([bg, infoText, track, thumb]);
+      this.projectInfoText        = infoText;
+      this.projectInfoTextMask    = bg;
       this.projectInfoScrollTrack = track;
       this.projectInfoScrollThumb = thumb;
     }
-
-
-
 
     _drawMediaAt(imgInfo, keyIndex) {
 
@@ -627,18 +645,39 @@
 
 
     _drawNextImage(imgInfo) {
-      if (this.currentImageIndex < this.imageKeys.length - 1) {
-        this.currentImageIndex++;
-        this._drawMediaAt(imgInfo, this.currentImageIndex);
+      if (!this.imageKeys || this.imageKeys.length <= 1) return;
+      if (this.currentImageIndex >= this.imageKeys.length - 1) return;
+
+      this.currentImageIndex++;
+      this._drawMediaAt(imgInfo, this.currentImageIndex);
+
+      // ensure media is in modal & arrows are above
+      if (this.currentImage && this.modal && this.currentImage.parentContainer !== this.modal) {
+        this.modal.add(this.currentImage);
       }
+      this.modal.bringToTop(this.previousArrow);
+      this.modal.bringToTop(this.nextArrow);
+      this.modal.bringToTop(this.projectCloseButtonBackground);
+      this.modal.bringToTop(this.projectCloseButton);
     }
 
     _drawPreviousImage(imgInfo) {
-      if (this.currentImageIndex > 0) {
-        this.currentImageIndex--;
-        this._drawMediaAt(imgInfo, this.currentImageIndex);
+      if (!this.imageKeys || this.imageKeys.length <= 1) return;
+      if (this.currentImageIndex <= 0) return;
+
+      this.currentImageIndex--;
+      this._drawMediaAt(imgInfo, this.currentImageIndex);
+
+      // ensure media is in modal & arrows are above
+      if (this.currentImage && this.modal && this.currentImage.parentContainer !== this.modal) {
+        this.modal.add(this.currentImage);
       }
+      this.modal.bringToTop(this.previousArrow);
+      this.modal.bringToTop(this.nextArrow);
+      this.modal.bringToTop(this.projectCloseButtonBackground);
+      this.modal.bringToTop(this.projectCloseButton);
     }
+
 
     checkInteraction() {
       const p = this.scene.player;
