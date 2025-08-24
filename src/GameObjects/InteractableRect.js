@@ -311,8 +311,12 @@
     }
 
     _closeProject(){
-      const scene = this.scene.sys?.settings?.key;
-      if (scene === 'RicardosProjects') {
+      const sceneKey = this.scene.sys?.settings?.key;
+      const sceneWidth = this.scene.scale.width;
+      const sceneHeight = this.scene.scale.height;
+      const isPortraitOrientation = sceneHeight > sceneWidth;
+
+      if (sceneKey === 'RicardosProjects' && isPortraitOrientation) {
         this.scene.cameras.main.zoomTo(2, 200);
       }
 
@@ -760,6 +764,7 @@
       // dynamic sizing
       const h = scene.scale.height;
       const w = scene.scale.width;
+      const largerSide = Math.max(w, h);
 
       // 2) “thinking” dots
       const radii        = [0.004, 0.007, 0.01].map(f => Math.round(f * h));
@@ -773,29 +778,29 @@
           0xffffff
         )
         .setDepth(this.depth + 1)
-        .setStrokeStyle(Math.max(1, Math.round(0.002 * w)), 0x000000)
+        .setStrokeStyle(Math.max(1, Math.round(0.002 * largerSide)), 0x000000)
         .setScrollFactor(1);
       });
 
       // 3) prepare text
-      const fontSizePx = Math.round(0.015 * h);
+      const fontSizePx = Math.round(0.015 * largerSide);
       const message    = `Too far from: ${this.name}`;
       const text = scene.add.text(0, 0, message, {
         fontSize: `${fontSizePx}px`,
         color:    '#000000',
         align:    'center',
-        wordWrap: { width: w * 0.25 }
+        wordWrap: { width: largerSide * 0.25 }
       })
       .setDepth(this.depth + 2)
       .setScrollFactor(1);
 
       // 4) compute bubble dimensions and draw it
-      const padding = Math.round(0.01 * w);
+      const padding = Math.round(0.01 * largerSide);
       const bubbleW = text.width  + padding * 2;
       const bubbleH = text.height + padding * 2;
       const topDotY = playerYTop - verticalOffs[verticalOffs.length - 1];
       const bubbleX = playerX;
-      const bubbleY = topDotY - bubbleH / 2 - (0.01 * h);
+      const bubbleY = topDotY - bubbleH / 2 - (0.01 * largerSide);
       const cornerR = Math.round(0.1 * Math.min(bubbleW, bubbleH));
 
       const bubbleGraphics = scene.add.graphics()
@@ -810,7 +815,7 @@
         bubbleH,
         cornerR
       );
-      bubbleGraphics.lineStyle(Math.max(1, Math.round(0.002 * w)), 0x000000, 1);
+      bubbleGraphics.lineStyle(Math.max(1, Math.round(0.002 * largerSide)), 0x000000, 1);
       bubbleGraphics.strokeRoundedRect(
         bubbleX - bubbleW/2,
         bubbleY - bubbleH/2,
