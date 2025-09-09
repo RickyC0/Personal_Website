@@ -122,32 +122,34 @@ import { HUD } from "../scenes/HUD.js";
 
       if (this.questionMark) this.questionMark.destroy();
 
-      // Create the question mark text above the object
-      const { width: w, height: h } = this.scene.scale;
+      if(this.scene){
+        // Create the question mark text above the object
+        const { width: w, height: h } = this.scene.scale;
 
-      this.scene.time.delayedCall(100, () => {
-        this.questionMark = this.scene.add.text(this.x, this.y - this.obj.height / 2 - 30, '?', {
-          fontSize: `${Math.min(h*0.08,w*0.05)}px`,
-          color: '#ff0000',
-          fontStyle: 'bold',
-          align: 'center'
-        }).setOrigin(0.5)
-        .setDepth(this.depth + 1);
+        this.scene.time.delayedCall(100, () => {
+          this.questionMark = this.scene.add.text(this.x, this.y - this.obj.height / 2 - 30, '?', {
+            fontSize: `${Math.min(h*0.08,w*0.05)}px`,
+            color: '#ff0000',
+            fontStyle: 'bold',
+            align: 'center'
+          }).setOrigin(0.5)
+          .setDepth(this.depth + 1);
 
-        // Set up the animation for floating up and down
-        this.scene.tweens.add({
-          targets: this.questionMark,
-          y: { value: this.questionMark.y - 20, duration: 500, yoyo: true, repeat: -1 }, // Move up and down
-          ease: 'Sine.easeInOut',
-        });
+          // Set up the animation for floating up and down
+          this.scene.tweens.add({
+            targets: this.questionMark,
+            y: { value: this.questionMark.y - 20, duration: 500, yoyo: true, repeat: -1 }, // Move up and down
+            ease: 'Sine.easeInOut',
+          });
 
-        // Make the question mark clickable (interact to remove it)
-        this.questionMark.setInteractive();
+          // Make the question mark clickable (interact to remove it)
+          this.questionMark.setInteractive();
 
-        this.questionMark.on('pointerdown', () => {
-          this.interact();
-        });
-      } , [], this);
+          this.questionMark.on('pointerdown', () => {
+            this.interact();
+          });
+        } , [], this);
+      }
 
     }
 
@@ -803,25 +805,27 @@ import { HUD } from "../scenes/HUD.js";
       const player = scene.player;
       const playerX = player.x;
       const playerYTop = player.y - player.displayHeight / 2;
+      const highDepth = 1000;
 
-      // 1) clear any existing bubble/text/circles
+      // 1) Clear any existing bubble/text/circles
       if (this.thoughtBubble) {
         this.thoughtBubble.destroy();
         this.thoughtText.destroy();
         this.thoughtCircles.forEach(c => c.destroy());
       }
       this.thoughtBubble = null;
-      this.thoughtText   = null;
+      this.thoughtText = null;
       this.thoughtCircles = [];
 
-      // dynamic sizing
-      const h = scene.scale.height;
-      const w = scene.scale.width;
-      const largerSide = Math.max(w, h);
+      // Dynamic sizing based on screen size
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+      const largerSide = Math.max(screenWidth, screenHeight);
+      const landscapeBoost = screenWidth > screenHeight ? screenWidth / screenHeight : 1;
 
-      // 2) “thinking” dots
-      const radii        = [0.004, 0.007, 0.01].map(f => Math.round(f * h));
-      const verticalOffs = [0.005, 0.015, 0.03].map(f => f * h);
+      // 2) "Thinking" dots: Adjust size based on screen size
+      const radii = [0.004, 0.007, 0.01].map(f => Math.round(f * largerSide * landscapeBoost));
+      const verticalOffs = [0.005, 0.015, 0.03].map(f => f * largerSide * landscapeBoost);
 
       this.thoughtCircles = radii.map((radius, i) => {
         return scene.add.circle(
@@ -830,75 +834,76 @@ import { HUD } from "../scenes/HUD.js";
           radius,
           0xffffff
         )
-        .setDepth(this.depth + 1)
-        .setStrokeStyle(Math.max(1, Math.round(0.002 * largerSide)), 0x000000)
-        .setScrollFactor(1);
+          .setDepth(highDepth + 1)
+          .setStrokeStyle(Math.max(1, Math.round(0.002 * largerSide * landscapeBoost)), 0x000000)
+          .setScrollFactor(1);
       });
 
-      // 3) prepare text
-      const fontSizePx = Math.round(0.015 * largerSide);
-      const message    = `Too far from: ${this.name}`;
+      // 3) Prepare text: Dynamically adjust font size and word wrapping
+      const fontSizePx = Math.round(largerSide  * landscapeBoost* 0.015); // Dynamic font size based on screen size
+      const message = `Too far from: ${this.name}`;
       const text = scene.add.text(0, 0, message, {
         fontSize: `${fontSizePx}px`,
-        color:    '#000000',
-        align:    'center',
-        wordWrap: { width: largerSide * 0.25 }
+        color: '#000000',
+        align: 'center',
+        wordWrap: { width: largerSide * landscapeBoost* 0.3 }, // Adjust word wrap width for better layout
       })
-      .setDepth(this.depth + 2)
-      .setScrollFactor(1);
+        .setDepth(highDepth + 2)
+        .setScrollFactor(1);
 
-      // 4) compute bubble dimensions and draw it
-      const padding = Math.round(0.01 * largerSide);
-      const bubbleW = text.width  + padding * 2;
+      // 4) Compute bubble dimensions and draw it
+      const padding = Math.round(largerSide * 0.02 * landscapeBoost); // Dynamic padding
+      const bubbleW = text.width + padding * 2;
       const bubbleH = text.height + padding * 2;
       const topDotY = playerYTop - verticalOffs[verticalOffs.length - 1];
       const bubbleX = playerX;
-      const bubbleY = topDotY - bubbleH / 2 - (0.01 * largerSide);
+      const bubbleY = topDotY - bubbleH / 2 - (0.02 * largerSide * landscapeBoost); // Adjust bubble position dynamically
       const cornerR = Math.round(0.1 * Math.min(bubbleW, bubbleH));
 
       const bubbleGraphics = scene.add.graphics()
-        .setDepth(this.depth + 1)
+        .setDepth(highDepth + 1)
         .setScrollFactor(1)
         .fillStyle(0xffffff, 1);
 
       bubbleGraphics.fillRoundedRect(
-        bubbleX - bubbleW/2,
-        bubbleY - bubbleH/2,
+        bubbleX - bubbleW / 2,
+        bubbleY - bubbleH / 2,
         bubbleW,
         bubbleH,
         cornerR
       );
-      bubbleGraphics.lineStyle(Math.max(1, Math.round(0.002 * largerSide)), 0x000000, 1);
+      bubbleGraphics.lineStyle(Math.max(1, Math.round(0.002 * largerSide * landscapeBoost)), 0x000000, 1);
       bubbleGraphics.strokeRoundedRect(
-        bubbleX - bubbleW/2,
-        bubbleY - bubbleH/2,
+        bubbleX - bubbleW / 2,
+        bubbleY - bubbleH / 2,
         bubbleW,
         bubbleH,
         cornerR
       );
 
-      // position the text
+      // Position the text in the center of the bubble
       text.setPosition(
         bubbleX - text.width / 2,
         bubbleY - text.height / 2
       );
 
-      // 5) save refs
+      // 5) Save references to allow future removal or adjustments
       this.thoughtBubble = bubbleGraphics;
-      this.thoughtText   = text;
+      this.thoughtText = text;
 
-      // 6) auto‐clear after 1.5s
+      // 6) Auto-clear after 1.5s
       scene.time.delayedCall(1500, () => {
         if (this.thoughtBubble) {
           this.thoughtBubble.destroy();
           this.thoughtText.destroy();
           this.thoughtCircles.forEach(c => c.destroy());
           this.thoughtBubble = null;
-          this.thoughtText   = null;
+          this.thoughtText = null;
           this.thoughtCircles = [];
         }
       });
     }
+
 
 
 
