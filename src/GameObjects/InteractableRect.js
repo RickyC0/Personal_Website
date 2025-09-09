@@ -653,53 +653,87 @@ import { HUD } from "../scenes/HUD.js";
     }
 
     _drawMediaAt(imgInfo, keyIndex) {
-
       const scene = this.scene;
-      const cam   = scene.cameras.main;
+      const cam = scene.cameras.main;
       const propKey = this.mediaProps[keyIndex];
-      const fullPath = this.tileProps[propKey];        // e.g. "myMovie.mov"
-      const filename = fullPath.split(/[\\/]/).pop();  // "myMovie.mov"
+      const fullPath = this.tileProps[propKey]; // e.g. "myMovie.mov"
+      const filename = fullPath.split(/[\\/]/).pop(); // "myMovie.mov"
       const key = filename.replace(/\.\w+$/, '');
-      const url = 'assets/' + fullPath;  
+      const url = 'assets/' + fullPath;
 
-      // destroy old
+      // Destroy old image
       if (this.currentImage) this.currentImage.destroy();
 
+      // Create video or image
       if (/\.(mp4)$/i.test(fullPath)) {
-        //This is necessary because of the 'realWidth' = null bug.
+        //!!!!!!!!!!!!!!!!!!!!!!!!!!
+        //This is necessary because of the 'realWidth' = null bug from Phaser.
         //if i don't use a placeholder, phaser will not display the video for some reason
-        const placeHolder = this.scene.add.image(imgInfo.imgX, imgInfo.imgY, 'brick-background')
-        .setVisible(false);
+        const placeHolder = scene.add.image(imgInfo.imgX, imgInfo.imgY, 'brick-background')
+          .setVisible(false);
 
-        // 1) Create WITHOUT a key, at (x,y)
+        // Create video at (x, y)
+        
+        //create WITHOUT a key, at (x,y)
         const video = scene.add.video(
           imgInfo.imgX,
           imgInfo.imgY,
           key
         )
-        .setOrigin(0.5)
-        .setDepth(cam.depth + 4)
-        .setScrollFactor(0)
-        .setTexture(placeHolder)
-        .setDisplaySize(imgInfo.imgW * 0.016 , imgInfo.imgH * 0.03);
+          .setOrigin(0.5)
+          .setDepth(cam.depth + 4)
+          .setScrollFactor(0)
+          .setTexture(placeHolder)
+          .setDisplaySize(imgInfo.imgW * 0.016, imgInfo.imgH * 0.03);
 
         video.play(true);
-
         this.currentImage = video;
-      }
-
-      else {
-        // image path…
+      } else {
+        // Create image
         this.currentImage = scene.add.image(
           imgInfo.imgX,
           imgInfo.imgY,
           key
         )
-        .setOrigin(0.5)
-        .setDepth(cam.depth + 4)
-        .setScrollFactor(0)
-        .setDisplaySize(imgInfo.imgW, imgInfo.imgH);
+          .setOrigin(0.5)
+          .setDepth(cam.depth + 4)
+          .setScrollFactor(0)
+          .setDisplaySize(imgInfo.imgW, imgInfo.imgH);
       }
+
+      //-------------MAKE THE IMAGES SWIPEABLE----------------
+
+      let startX = 0;
+      let endX = 0;
+
+      // Detect pointer down (touch start)
+      this.currentImage.setInteractive();
+      this.currentImage.on('pointerdown', (pointer) => {
+        startX = pointer.x;
+      });
+
+      // Detect pointer move (touch drag)
+      this.currentImage.on('pointermove', (pointer) => {
+        endX = pointer.x;
+      });
+
+      // Detect pointer up (touch end)
+      this.currentImage.on('pointerup', () => {
+        if (startX !== 0 && endX !== 0) {
+          const swipeThreshold = 100; // Minimum swipe distance to register as a swipe
+          const swipeDistance = endX - startX;
+
+          if (Math.abs(swipeDistance) > swipeThreshold) {
+            if (swipeDistance > 0) {
+              // Swipe right (previous image)
+              this._drawPreviousImage(imgInfo);
+            } else {
+              // Swipe left (next image)
+              this._drawNextImage(imgInfo);
+            }
+          }
+        }
+      });
     }
 
 
