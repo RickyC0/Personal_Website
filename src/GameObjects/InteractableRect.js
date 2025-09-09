@@ -1,3 +1,5 @@
+import { HUD } from "../scenes/HUD.js";
+
   export class InteractableRect extends Phaser.GameObjects.Rectangle {
     //array of interactable rects
     static instances = [];
@@ -101,7 +103,11 @@
       // **only** the rect that actually opened the modal should clear/redraw
       if (InteractableRect.isProjectOpen && InteractableRect.currentProjectRect === this) {
         this._clearDisplayRect();
-        this._displayProjectInfo();
+
+        // slight delay to give the resize time to process the new screen size before redrawing
+        this.timer = this.scene.time.delayedCall(100, () => {
+          this._displayProjectInfo();
+        });
       }
     }
 
@@ -294,7 +300,8 @@
         'projectImages',
         'projectInfoScrollTrack',
         'projectInfoScrollThumb',
-        'projectScrimEffect'
+        'projectScrimEffect',
+        'modal'
       ].forEach(prop => {
         const obj = this[prop];
         if (obj != null) {
@@ -323,12 +330,17 @@
       InteractableRect.isProjectOpen = false;
       InteractableRect.currentProjectRect = null;
       this._clearDisplayRect();
+
+      // re-enable HUD components
+      HUD.showHUD();
     }
 
     // Responsive modal: portrait = stacked; landscape = side-by-side
-    // --- Responsive modal: portrait (stacked) vs landscape (side-by-side) ---
     _displayProjectInfo() {
       InteractableRect.isProjectOpen = true;
+
+      // Hide the HUD
+      HUD.hideHUD();
 
       this.scene.cameras.main.setZoom(1);
 
