@@ -22,6 +22,7 @@ import { HUD } from "../scenes/HUD.js";
       scene.physics.add.existing(this, true);
       this.setInteractive({ useHandCursor: true });
 
+      this._drawQuestionMarkAbove();
       this._drawHoverArea();
 
       // collect Tiled properties
@@ -99,6 +100,12 @@ import { HUD } from "../scenes/HUD.js";
         this.hoverHighlight.destroy();
       }
 
+      if(this.questionMark){
+        this.questionMark.destroy();
+        this.questionMark=null;
+        this._drawQuestionMarkAbove();
+      }
+
       // if the project modal is currently open, clear & redisplay it
       // **only** the rect that actually opened the modal should clear/redraw
       if (InteractableRect.isProjectOpen && InteractableRect.currentProjectRect === this) {
@@ -110,6 +117,40 @@ import { HUD } from "../scenes/HUD.js";
         });
       }
     }
+
+    _drawQuestionMarkAbove() {
+
+      if (this.questionMark) this.questionMark.destroy();
+
+      // Create the question mark text above the object
+      const { width: w, height: h } = this.scene.scale;
+
+      this.scene.time.delayedCall(100, () => {
+        this.questionMark = this.scene.add.text(this.x, this.y - this.obj.height / 2 - 30, '?', {
+          fontSize: `${Math.min(h*0.08,w*0.05)}px`,
+          color: '#ff0000',
+          fontStyle: 'bold',
+          align: 'center'
+        }).setOrigin(0.5)
+        .setDepth(this.depth + 1);
+
+        // Set up the animation for floating up and down
+        this.scene.tweens.add({
+          targets: this.questionMark,
+          y: { value: this.questionMark.y - 20, duration: 500, yoyo: true, repeat: -1 }, // Move up and down
+          ease: 'Sine.easeInOut',
+        });
+
+        // Make the question mark clickable (interact to remove it)
+        this.questionMark.setInteractive();
+
+        this.questionMark.on('pointerdown', () => {
+          this.interact();
+        });
+      } , [], this);
+
+    }
+
 
     _drawHoverArea(){
       // hover highlight
@@ -902,6 +943,9 @@ import { HUD } from "../scenes/HUD.js";
         InteractableRect.currentProjectRect = this;       // remember me
         this._displayProjectInfo();
       }
+
+      this.questionMark?.destroy();
+      this.questionMark = null;
     }
 
     update() {
