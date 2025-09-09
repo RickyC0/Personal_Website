@@ -3,6 +3,7 @@
 import VirtualJoystick from '../GameObjects/VirtualJoystick.js';
 import { Player } from '../GameObjects/Player.js';
 import { InteractableRect } from '../GameObjects/InteractableRect.js';
+import { HUD } from './HUD.js';
 
 export class Game extends Phaser.Scene {
 
@@ -20,10 +21,47 @@ export class Game extends Phaser.Scene {
 
   create(){
     this.isTouch = this.sys.game.device.input.touch;
-    if (this.isTouch) {
-      this.input.addPointer(3);
-      this.joy = new VirtualJoystick(this);
-    }
+      if (this.isTouch) {
+        if (!this.scene.isActive('HUD')) {
+          this.scene.launch('HUD', { parentKey: this.scene.key });
+        }
+        const hud = this.scene.get('HUD');
+
+        // If HUD already created, you can use its joystick immediately,
+        // otherwise wait for the 'ready' event. Either way, wire axis -> player.
+        const wire = () => {
+          hud.events.on('axis', ({ x, y }) => {
+            this.lastAxis = { x, y };      // cache joystick axis for use in update()
+          }, this);
+
+          this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+            hud.events.off('axis', null, this);
+          });
+        };
+
+        this.lastAxis = { x: 0, y: 0 };
+
+        // If HUD isn’t fully ready yet, wait once; otherwise wire now
+        if (hud.scene.isActive()) {
+          if (hud.joystick) wire();
+          else hud.events.once('ready', wire, this);
+        } else {
+          hud.events.once('create', wire, this); // safety net
+        }
+
+        // If this scene is resumed (after a pause), re-wire the joystick
+        this.events.on(Phaser.Scenes.Events.RESUME, () => {
+          hud.events.off('axis', null, this);
+          this.lastAxis = { x: 0, y: 0 };
+
+          if (hud.joystick) {
+            wire();
+          } else {
+            hud.events.once('ready', wire, this);
+          }
+        }, this);
+
+      }
 
     //Used to resize the this.map according to the window size, onload and dynamically
     const applyResponsiveZoom = (scene, map) => {
@@ -256,11 +294,8 @@ export class Game extends Phaser.Scene {
 
   update(){
     // joystick axes (analog) -> -1..1
-    let jx = 0, jy = 0;
-    if (this.joy) {
-      const v = this.joy.getAxis();
-      jx = v.x; jy = v.y;
-    }
+    const jx = this.lastAxis?.x || 0;
+    const jy = this.lastAxis?.y || 0;
 
     // keyboard (digital)
     const kx = (this.cursors.left.isDown || this.keys.left.isDown ? -1 : 0) +
@@ -268,10 +303,10 @@ export class Game extends Phaser.Scene {
     const ky = (this.cursors.up.isDown || this.keys.up.isDown ? -1 : 0) +
               (this.cursors.down.isDown || this.keys.down.isDown ?  1 : 0);
 
-    // prefer joystick when active
-    const useJoy = (jx !== 0 || jy !== 0);
-    const ax = useJoy ? jx : Phaser.Math.Clamp(kx, -1, 1);
-    const ay = useJoy ? jy : Phaser.Math.Clamp(ky, -1, 1);
+    // prefer joystick when active (deadzone)
+    const joyActive = (Math.abs(jx) > 0.001 || Math.abs(jy) > 0.001);
+    const ax = joyActive ? jx : Phaser.Math.Clamp(kx, -1, 1);
+    const ay = joyActive ? jy : Phaser.Math.Clamp(ky, -1, 1);
 
     this.player.setMove(ax, ay);
   }
