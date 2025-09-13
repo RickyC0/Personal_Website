@@ -855,11 +855,13 @@ import { HUD } from "../scenes/HUD.js";
       const screenWidth = window.innerWidth;
       const screenHeight = window.innerHeight;
       const largerSide = Math.max(screenWidth, screenHeight);
-      const landscapeBoost = screenWidth > screenHeight ? screenWidth / screenHeight : 1;
+
+      const isOnMobile = this.scene.sys.game.device.os.android || this.scene.sys.game.device.os.ios;
+      const mobileLandscapeBoost = isOnMobile ? screenWidth / screenHeight : 1;
 
       // 2) "Thinking" dots: Adjust size based on screen size
-      const radii = [0.004, 0.007, 0.01].map(f => Math.round(f * largerSide * landscapeBoost));
-      const verticalOffs = [0.005, 0.015, 0.03].map(f => f * largerSide * landscapeBoost);
+      const radii = [0.004, 0.007, 0.01].map(f => Math.round(f * largerSide * mobileLandscapeBoost));
+      const verticalOffs = [0.005, 0.015, 0.03].map(f => f * largerSide * mobileLandscapeBoost);
 
       this.thoughtCircles = radii.map((radius, i) => {
         return scene.add.circle(
@@ -869,29 +871,29 @@ import { HUD } from "../scenes/HUD.js";
           0xffffff
         )
           .setDepth(highDepth + 1)
-          .setStrokeStyle(Math.max(1, Math.round(0.002 * largerSide * landscapeBoost)), 0x000000)
+          .setStrokeStyle(Math.max(1, Math.round(0.002 * largerSide * mobileLandscapeBoost)), 0x000000)
           .setScrollFactor(1);
       });
 
       // 3) Prepare text: Dynamically adjust font size and word wrapping
-      const fontSizePx = Math.round(largerSide  * landscapeBoost* 0.015); // Dynamic font size based on screen size
+      const fontSizePx = Math.round(largerSide  * mobileLandscapeBoost* 0.015); // Dynamic font size based on screen size
       const message = `Too far from: ${this.name}`;
       const text = scene.add.text(0, 0, message, {
         fontSize: `${fontSizePx}px`,
         color: '#000000',
         align: 'center',
-        wordWrap: { width: largerSide * landscapeBoost* 0.3 }, // Adjust word wrap width for better layout
+        wordWrap: { width: largerSide * mobileLandscapeBoost* 0.3 }, // Adjust word wrap width for better layout
       })
         .setDepth(highDepth + 2)
         .setScrollFactor(1);
 
       // 4) Compute bubble dimensions and draw it
-      const padding = Math.round(largerSide * 0.02 * landscapeBoost); // Dynamic padding
+      const padding = Math.round(largerSide * 0.02 * mobileLandscapeBoost); // Dynamic padding
       const bubbleW = text.width + padding * 2;
       const bubbleH = text.height + padding * 2;
       const topDotY = playerYTop - verticalOffs[verticalOffs.length - 1];
       const bubbleX = playerX;
-      const bubbleY = topDotY - bubbleH / 2 - (0.02 * largerSide * landscapeBoost); // Adjust bubble position dynamically
+      const bubbleY = topDotY - bubbleH / 2 - (0.02 * largerSide * mobileLandscapeBoost); // Adjust bubble position dynamically
       const cornerR = Math.round(0.1 * Math.min(bubbleW, bubbleH));
 
       const bubbleGraphics = scene.add.graphics()
@@ -906,7 +908,7 @@ import { HUD } from "../scenes/HUD.js";
         bubbleH,
         cornerR
       );
-      bubbleGraphics.lineStyle(Math.max(1, Math.round(0.002 * largerSide * landscapeBoost)), 0x000000, 1);
+      bubbleGraphics.lineStyle(Math.max(1, Math.round(0.002 * largerSide * mobileLandscapeBoost)), 0x000000, 1);
       bubbleGraphics.strokeRoundedRect(
         bubbleX - bubbleW / 2,
         bubbleY - bubbleH / 2,
