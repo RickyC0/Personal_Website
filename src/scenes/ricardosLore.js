@@ -43,8 +43,7 @@ export class ricardosLore extends Phaser.Scene {
         key: 'cv-sprite',
         label: 'CV',
         callback: () => window.open(
-          '../../assets/professional-files/EN-Ricardo\'s CV-Computer Science-Fall 2025.pdf',
-          '_blank')
+          '../../assets/professional-files/EN-Ricardo\'s CV-Computer Science-Fall 2025.pdf', '_blank')
       },
       {
         key: 'projects-sprite',
@@ -63,7 +62,7 @@ export class ricardosLore extends Phaser.Scene {
         key: 'education-sprite',
         label: 'Education',
         
-        callback: () => window.open('https://www.linkedin.com/in/ricardorajichahine/')
+        callback: () => window.open('https://www.linkedin.com/in/ricardorajichahine/', '_blank')
       }
     ];
 
@@ -71,7 +70,9 @@ export class ricardosLore extends Phaser.Scene {
     this.iconImages = [];
     this.iconLabels = [];
 
-    this.icons.forEach((data, idx) => {
+    const isUserMobile = this.sys.game.device.os.android || this.sys.game.device.os.iOS;
+    if (!isUserMobile) {
+      this.icons.forEach((data) => {
         const img = this.add.image(0, 0, data.key)
           .setInteractive({ useHandCursor: true })
           .setDepth(this.background.depth + 1)
@@ -85,6 +86,25 @@ export class ricardosLore extends Phaser.Scene {
         this.iconImages.push(img);
         this.iconLabels.push(txt);
       });
+    }
+    else {
+      //This is the same as on laptop/pc but with pointerup instead of pointerdown, because mobile browsers (e.g. safari) have issues with pointerdown
+      this.icons.forEach((data) => {
+        const img = this.add.image(0, 0, data.key)
+          .setInteractive({ useHandCursor: true })
+          .setDepth(this.background.depth + 1)
+          .on('pointerup', data.callback);
+
+          // Title for each icon
+        const txt = this.add.text(0, 0, data.label, {
+          fontSize: `${Math.min(this.screenW*0.08,this.screenH*0.08)}px`, color: '#000000', align: 'center'
+        }).setDepth(this.background.depth + 1).setOrigin(0.5, 0);
+
+        this.iconImages.push(img);
+        this.iconLabels.push(txt);
+      });
+    }
+    
 
     // 5) perform initial layout
     this.updateLayout();
