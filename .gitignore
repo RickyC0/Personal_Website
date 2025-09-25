@@ -4,3 +4,5 @@
 .clj-kondo/
 
 package-lock.json
+
+.idea/
