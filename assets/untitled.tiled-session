@@ -3,16 +3,16 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "RicardosProjectsWorld.tmx",
+    "activeFile": "Map.tmx",
     "expandedProjectPaths": [
+        ".",
         "custom-sprites",
-        "tilesets",
-        "."
+        "tilesets"
     ],
     "file.lastUsedOpenFilter": "All Files (*)",
     "fileStates": {
         "": {
-            "scaleInDock": 2,
+            "scaleInDock": 0.33,
             "scaleInEditor": 1
         },
         "#Color Palette": {
@@ -64,14 +64,17 @@
             "scaleInEditor": 0.5
         },
         "Map.tmx": {
+            "expandedGroupLayers": [
+                30
+            ],
             "expandedObjectLayers": [
                 40
             ],
-            "scale": 11,
-            "selectedLayer": 35,
+            "scale": 1.5,
+            "selectedLayer": 24,
             "viewCenter": {
-                "x": 480.04545454545456,
-                "y": 320
+                "x": 480.33333333333326,
+                "y": 319.66666666666663
             }
         },
         "Map.tmx#ForBuildings": {
@@ -81,7 +84,7 @@
             "scaleInEditor": 1
         },
         "Map.tmx#MainTileset": {
-            "scaleInDock": 1,
+            "scaleInDock": 1.5,
             "scaleInEditor": 1
         },
         "Map.tmx#MainTilesetPNG": {
@@ -107,8 +110,8 @@
             "scale": 0.33,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 1634.8484848484848,
-                "y": 639.3939393939394
+                "x": 2321.212121212121,
+                "y": 1919.6969696969697
             }
         },
         "MovingClouds.tmx#Color Palette": {
@@ -126,7 +129,7 @@
             "scale": 1,
             "selectedLayer": 5,
             "viewCenter": {
-                "x": 256,
+                "x": 302,
                 "y": 640.5
             }
         },
@@ -207,7 +210,7 @@
     },
     "last.exportedFilePath": "C:/Users/ricka/OneDrive - Concordia University - Canada/Desktop/Coding/Web/Personal_Website/assets",
     "last.externalTilesetPath": "C:/Users/ricka/OneDrive - Concordia University - Canada/Desktop/Coding/Web/Personal_Website/assets/tilesets",
-    "last.imagePath": "C:/Users/ricka/OneDrive - Concordia University - Canada/Desktop/Coding/Web/Personal_Website/assets/tilesets",
+    "last.imagePath": "C:/Users/ricka/OneDrive - Concordia University - Canada/Desktop/Coding/Web/Personal_Website/assets/custom-sprites",
     "lastUsedTilesetExportFilter": "JSON tileset files (*.tsj *.json)",
     "map.height": 160,
     "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
@@ -223,9 +226,9 @@
     "project": "untitled.tiled-project",
     "property.type": "file",
     "recentFiles": [
-        "Map.tmx",
         "MovingClouds.tmx",
         "RicardosProjectsWorld.tmx",
+        "Map.tmx",
         "tilesets/map_tileset.tsx",
         "tilesets/MapJson.json",
         "tilesets/FRLG Outside B.tsx",
@@ -240,8 +243,8 @@
     "tileset.lastUsedFilter": "Tiled tileset files (*.tsx *.xml)",
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {
-        "height": 16,
-        "width": 16
+        "height": 64,
+        "width": 64
     },
     "tileset.transparentColor": "#ff00ff",
     "tileset.useTransparentColor": true

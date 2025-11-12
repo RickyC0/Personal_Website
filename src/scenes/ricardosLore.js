@@ -43,7 +43,7 @@ export class ricardosLore extends Phaser.Scene {
         key: 'cv-sprite',
         label: 'CV',
         callback: () => window.open(
-          '../../assets/professional-files/EN-Ricardo\'s CV-Computer Science-Fall 2025.pdf', '_blank')
+          '../../assets/professional-files/EN-Ricardo_Computer_Science_CV-FALL_2025.pdf', '_blank')
       },
       {
         key: 'projects-sprite',
